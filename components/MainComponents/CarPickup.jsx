@@ -8,27 +8,59 @@ import {
   TextInput,
   FlatList,
   Platform,
+  StatusBar,
 } from "react-native";
-import MapView, { Marker } from "react-native-maps";
+import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useDispatch, useSelector } from "react-redux";
 import { getPickupLocations } from "../Redux/pickupSlice";
+import { format } from "date-fns"; // For sexy date formatting
+import { Ionicons } from "@expo/vector-icons"; // Included in your Expo install
+import * as Location from "expo-location";
+
+
+const MAX_SEATS = 6;
 
 const CarPickup = () => {
   const dispatch = useDispatch();
   const { pickupLocations } = useSelector((state) => state.pickup);
 
-  // map + form state
   const [pickup, setPickup] = useState(null);
   const [drop, setDrop] = useState(null);
   const [people, setPeople] = useState(1);
   const [dateTime, setDateTime] = useState(new Date());
 
-  // modal state
+  // UI State
   const [showPopup, setShowPopup] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeField, setActiveField] = useState(null); // "pickup" | "drop"
-  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [activeField, setActiveField] = useState(null);
+  const [pickerMode, setPickerMode] = useState("date"); // 'date' or 'time'
+  const [showPicker, setShowPicker] = useState(false);
+  const [region, setRegion] = useState(null);
+  const [locationError, setLocationError] = useState(null);
+
+  useEffect(() => {
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+
+      if (status !== "granted") {
+        setLocationError("Permission denied");
+        return;
+      }
+
+      const location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.High,
+      });
+
+      setRegion({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+        latitudeDelta: 0.05,
+        longitudeDelta: 0.05,
+      });
+    })();
+  }, []);
+
 
   useEffect(() => {
     dispatch(getPickupLocations());
@@ -41,276 +73,281 @@ const CarPickup = () => {
   }, [searchQuery, pickupLocations]);
 
   const handleSelect = (item) => {
-    const value = {
-      name: item.name,
-      lat: item.lat,
-      lng: item.lng,
-    };
-
+    const value = { name: item.name, lat: item.lat, lng: item.lng };
     if (activeField === "pickup") setPickup(value);
     if (activeField === "drop") setDrop(value);
-
     setShowPopup(false);
     setSearchQuery("");
   };
 
-  const handleSubmit = () => {
-    console.log({
-      pickup,
-      drop,
-      people,
-      dateTime,
-    });
+  // Improved Date/Time Handler
+  const onDateTimeChange = (event, selectedDate) => {
+    if (event.type === "dismissed") {
+      setShowPicker(false);
+      return;
+    }
+
+    const currentDate = selectedDate || dateTime;
+
+    if (Platform.OS === "android") {
+      if (pickerMode === "date") {
+        setDateTime(currentDate);
+        setPickerMode("time"); // Immediately show time picker after date
+      } else {
+        setShowPicker(false);
+        setDateTime(currentDate);
+        setPickerMode("date"); // Reset for next time
+      }
+    } else {
+      // iOS handles both in one UI usually
+      setDateTime(currentDate);
+      setShowPicker(false);
+    }
+  };
+
+  const showDatePickerUI = () => {
+    setPickerMode("date");
+    setShowPicker(true);
   };
 
   return (
     <View style={styles.container}>
-      {/* MAP */}
-      <MapView
-        style={styles.map}
-        initialRegion={{
-          latitude: 27.03,
-          longitude: 88.26,
-          latitudeDelta: 0.1,
-          longitudeDelta: 0.1,
-        }}
-      >
-        {pickup && (
-          <Marker
-            coordinate={{ latitude: pickup.lat, longitude: pickup.lng }}
-            title="Pickup"
-            pinColor="green"
-          />
-        )}
-        {drop && (
-          <Marker
-            coordinate={{ latitude: drop.lat, longitude: drop.lng }}
-            title="Drop"
-            pinColor="red"
-          />
-        )}
-      </MapView>
+      <StatusBar barStyle="dark-content" />
 
-      {/* FORM */}
-      <View style={styles.form}>
-        <TouchableOpacity
-          style={styles.input}
-          onPress={() => {
-            setActiveField("pickup");
-            setShowPopup(true);
-          }}
+      {region && (
+        <MapView
+          provider={PROVIDER_GOOGLE}
+          style={StyleSheet.absoluteFillObject}
+          region={region}
+          showsUserLocation
+          followsUserLocation
         >
-          <Text style={styles.inputText}>
-            {pickup ? pickup.name : "Select Pickup Location"}
-          </Text>
-        </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.input}
-          onPress={() => {
-            setActiveField("drop");
-            setShowPopup(true);
-          }}
-        >
-          <Text style={styles.inputText}>
-            {drop ? drop.name : "Select Drop Location"}
-          </Text>
-        </TouchableOpacity>
+          {pickup && <Marker coordinate={{ latitude: pickup.lat, longitude: pickup.lng }} pinColor="#10b981" />}
+          {drop && <Marker coordinate={{ latitude: drop.lat, longitude: drop.lng }} pinColor="#ef4444" />}
+        </MapView>
+      )}
 
-        {/* PEOPLE */}
-        <View style={styles.row}>
-          <Text style={styles.label}>People</Text>
-          <View style={styles.counter}>
-            <TouchableOpacity onPress={() => setPeople(Math.max(1, people - 1))}>
-              <Text style={styles.counterBtn}>−</Text>
+
+      <View style={styles.bottomCard}>
+        <View style={styles.handle} />
+        <Text style={styles.greeting}>Request a Ride</Text>
+
+        {/* LOCATION SELECTOR */}
+        <View style={styles.locationContainer}>
+          <View style={styles.verticalLineContainer}>
+            <Ionicons name="radio-button-on" size={16} color="#10b981" />
+            <View style={styles.line} />
+            <Ionicons name="location" size={16} color="#ef4444" />
+          </View>
+
+          <View style={styles.inputsWrapper}>
+            <TouchableOpacity
+              style={styles.locationInput}
+              onPress={() => { setActiveField("pickup"); setShowPopup(true); }}
+            >
+              <Text numberOfLines={1} style={[styles.locationText, !pickup && styles.placeholder]}>
+                {pickup ? pickup.name : "Pick-up Point"}
+              </Text>
             </TouchableOpacity>
-            <Text style={styles.counterValue}>{people}</Text>
-            <TouchableOpacity onPress={() => setPeople(people + 1)}>
-              <Text style={styles.counterBtn}>+</Text>
+            <View style={styles.divider} />
+            <TouchableOpacity
+              style={styles.locationInput}
+              onPress={() => { setActiveField("drop"); setShowPopup(true); }}
+            >
+              <Text numberOfLines={1} style={[styles.locationText, !drop && styles.placeholder]}>
+                {drop ? drop.name : "Where to?"}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* DATE TIME */}
+        {/* CHIPS ROW */}
+        <View style={styles.optionsRow}>
+          {/* DATE CHIP */}
+          <TouchableOpacity style={styles.optionChip} onPress={showDatePickerUI}>
+            <Ionicons name="calendar-outline" size={18} color="#2563eb" style={{ marginRight: 6 }} />
+            <Text style={styles.optionLabel}>
+              {format(dateTime, "MMM d, h:mm a")}
+            </Text>
+          </TouchableOpacity>
+
+          {/* PASSENGER CHIP */}
+          <View style={styles.optionChip}>
+            <TouchableOpacity onPress={() => setPeople(Math.max(1, people - 1))}>
+              <Ionicons name="remove-circle-outline" size={24} color={people > 1 ? "#2563eb" : "#d1d5db"} />
+            </TouchableOpacity>
+
+            <View style={styles.passengerTextWrapper}>
+              <Ionicons name="person" size={14} color="#374151" />
+              <Text style={styles.passengerCount}>{people}</Text>
+            </View>
+
+            <TouchableOpacity onPress={() => setPeople(Math.min(MAX_SEATS, people + 1))}>
+              <Ionicons name="add-circle-outline" size={24} color={people < MAX_SEATS ? "#2563eb" : "#d1d5db"} />
+            </TouchableOpacity>
+          </View>
+        </View>
+
         <TouchableOpacity
-          style={styles.input}
-          onPress={() => setShowDatePicker(true)}
+          style={[styles.mainButton, (!pickup || !drop) && styles.disabledButton]}
+          onPress={() => console.log('Booking...', { pickup, drop, people, dateTime })}
+          disabled={!pickup || !drop}
         >
-          <Text style={styles.inputText}>
-            {dateTime.toLocaleString()}
-          </Text>
-        </TouchableOpacity>
-
-        {showDatePicker && (
-          <DateTimePicker
-            value={dateTime}
-            mode="datetime"
-            display={Platform.OS === "ios" ? "inline" : "default"}
-            onChange={(e, selectedDate) => {
-              setShowDatePicker(false);
-              if (selectedDate) setDateTime(selectedDate);
-            }}
-          />
-        )}
-
-        {/* SUBMIT */}
-        <TouchableOpacity style={styles.submit} onPress={handleSubmit}>
-          <Text style={styles.submitText}>Submit</Text>
+          <Text style={styles.mainButtonText}>Submit</Text>
         </TouchableOpacity>
       </View>
 
-      {/* LOCATION MODAL */}
-      <Modal visible={showPopup} animationType="slide">
-        <View style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <TouchableOpacity onPress={() => setShowPopup(false)}>
-              <Text style={styles.closeText}>←</Text>
-            </TouchableOpacity>
-            <Text style={styles.modalTitle}>Select Location</Text>
-          </View>
+      {showPicker && (
+        <DateTimePicker
+          value={dateTime}
+          mode={pickerMode}
+          is24Hour={false}
+          display={Platform.OS === "ios" ? "datetime" : "default"}
+          minimumDate={new Date()}
+          onChange={onDateTimeChange}
+        />
+      )}
 
-          <TextInput
-            style={styles.modalInput}
-            placeholder="Type to search..."
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            autoFocus
-          />
-
-          <FlatList
-            data={filtered}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={styles.suggestionItem}
-                onPress={() => handleSelect(item)}
-              >
-                <Text style={styles.suggestionText}>{item.name}</Text>
+      {/* SEARCH MODAL */}
+      <Modal visible={showPopup} animationType="slide" transparent={true}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <TouchableOpacity onPress={() => setShowPopup(false)} style={styles.backBtn}>
+                <Ionicons name="arrow-back" size={24} color="#111827" />
               </TouchableOpacity>
-            )}
-            ListEmptyComponent={
-              <Text style={styles.noResult}>No locations found</Text>
-            }
-          />
+              <TextInput
+                style={styles.searchBar}
+                placeholder="Search for a place..."
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                autoFocus
+              />
+            </View>
+
+            <FlatList
+              data={filtered}
+              keyExtractor={(item) => item.id.toString()}
+              contentContainerStyle={{ paddingHorizontal: 20 }}
+              renderItem={({ item }) => (
+                <TouchableOpacity style={styles.resultItem} onPress={() => handleSelect(item)}>
+                  <View style={styles.iconCircle}>
+                    <Ionicons name="pin" size={18} color="#6b7280" />
+                  </View>
+                  <View>
+                    <Text style={styles.resultName}>{item.name}</Text>
+                    <Text style={styles.resultSub}>Verified Location</Text>
+                  </View>
+                </TouchableOpacity>
+              )}
+            />
+          </View>
         </View>
       </Modal>
     </View>
   );
 };
 
-export default CarPickup;
-
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  map: { height: "40%" },
-
-  form: {
-    padding: 16,
-    backgroundColor: "#fff",
+  container: { flex: 1, backgroundColor: "#f3f4f6" },
+  bottomCard: {
+    position: 'absolute',
+    bottom: 0,
+    width: '100%',
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    padding: 24,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 20,
   },
-
-  input: {
+  handle: {
+    width: 50,
+    height: 6,
+    backgroundColor: '#e5e7eb',
+    borderRadius: 3,
+    alignSelf: 'center',
+    marginBottom: 20,
+  },
+  greeting: { fontSize: 24, fontWeight: '800', color: '#111827', marginBottom: 20 },
+  locationContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#f8fafc',
+    borderRadius: 20,
+    padding: 16,
     borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 10,
-    padding: 14,
-    marginBottom: 12,
+    borderColor: '#f1f5f9',
   },
-
-  inputText: {
-    fontSize: 16,
-    color: "#333",
-  },
-
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-
-  label: {
-    fontSize: 16,
-    fontWeight: "600",
-  },
-
-  counter: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-
-  counterBtn: {
-    fontSize: 22,
-    width: 40,
-    textAlign: "center",
-  },
-
-  counterValue: {
-    fontSize: 16,
-    marginHorizontal: 10,
-  },
-
-  submit: {
-    backgroundColor: "#2563eb",
-    padding: 16,
-    borderRadius: 12,
-    alignItems: "center",
-    marginTop: 10,
-  },
-
-  submitText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-
-  /* MODAL */
-  modalContainer: {
+  verticalLineContainer: { alignItems: 'center', width: 24, marginRight: 12 },
+  line: { width: 1, flex: 1, backgroundColor: '#cbd5e1', marginVertical: 4, borderStyle: 'dashed' },
+  inputsWrapper: { flex: 1 },
+  locationInput: { height: 35, justifyContent: 'center' },
+  locationText: { fontSize: 16, color: '#1e293b', fontWeight: '600' },
+  placeholder: { color: '#94a3b8', fontWeight: '400' },
+  divider: { height: 1, backgroundColor: '#e2e8f0', marginVertical: 10 },
+  optionsRow: { flexDirection: 'row', marginTop: 20, gap: 10 },
+  optionChip: {
     flex: 1,
-    backgroundColor: "#fff",
-    paddingTop: 40,
+    flexDirection: 'row',
+    backgroundColor: '#f1f5f9',
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-
+  optionLabel: { fontWeight: '700', color: '#334155', fontSize: 13 },
+  passengerTextWrapper: { flexDirection: 'row', alignItems: 'center', marginHorizontal: 10 },
+  passengerCount: { marginLeft: 4, fontWeight: '800', color: '#111827', fontSize: 16 },
+  mainButton: {
+    backgroundColor: '#1976D2',
+    paddingVertical: 18,
+    borderRadius: 18,
+    alignItems: 'center',
+    marginTop: 25,
+  },
+  disabledButton: { backgroundColor: '#1976D2' },
+  mainButtonText: { color: '#fff', fontSize: 18, fontWeight: '700' },
+  modalOverlay: { flex: 1, backgroundColor: '#fff' },
+  modalContent: { flex: 1, paddingTop: Platform.OS === 'ios' ? 60 : 20 },
   modalHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    marginBottom: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    marginBottom: 20,
+    gap: 12
   },
-
-  closeText: {
-    fontSize: 24,
-    marginRight: 20,
-  },
-
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-  },
-
-  modalInput: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 12,
-    marginHorizontal: 20,
-    borderRadius: 10,
-    marginBottom: 10,
-  },
-
-  suggestionItem: {
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-    marginHorizontal: 20,
-  },
-
-  suggestionText: {
+  searchBar: {
+    flex: 1,
+    backgroundColor: '#f1f5f9',
+    padding: 16,
+    borderRadius: 15,
     fontSize: 16,
+    color: '#111827'
   },
-
-  noResult: {
-    textAlign: "center",
-    marginTop: 20,
-    color: "#999",
+  resultItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9'
   },
+  iconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#f1f5f9',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 15,
+  },
+  resultName: { fontSize: 16, fontWeight: '700', color: '#1e293b' },
+  resultSub: { fontSize: 13, color: '#64748b', marginTop: 2 },
 });
+
+export default CarPickup;
