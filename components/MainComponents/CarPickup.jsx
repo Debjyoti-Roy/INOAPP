@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -13,17 +13,21 @@ import {
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useDispatch, useSelector } from "react-redux";
-import { getPickupLocations } from "../Redux/pickupSlice";
+import { clearPickupRoutes, createPickupBooking, getPickupLocations, getPickupRoutes } from "../Redux/pickupSlice";
 import { format } from "date-fns"; // For sexy date formatting
 import { Ionicons } from "@expo/vector-icons"; // Included in your Expo install
 import * as Location from "expo-location";
+import polyline from "@mapbox/polyline";
+import { Polyline } from "react-native-maps";
+
 
 
 const MAX_SEATS = 6;
 
 const CarPickup = () => {
+  const mapRef = useRef(null);
   const dispatch = useDispatch();
-  const { pickupLocations } = useSelector((state) => state.pickup);
+  const { pickupLocations, pickupRoutes, errorRoutes, bookingData } = useSelector((state) => state.pickup);
 
   const [pickup, setPickup] = useState(null);
   const [drop, setDrop] = useState(null);
@@ -38,6 +42,13 @@ const CarPickup = () => {
   const [showPicker, setShowPicker] = useState(false);
   const [region, setRegion] = useState(null);
   const [locationError, setLocationError] = useState(null);
+  const [showRoutes, setShowRoutes] = useState(false);
+  const [selectedRoute, setSelectedRoute] = useState(null);
+
+  useEffect(() => {
+    dispatch(clearPickupRoutes())
+  }, [])
+
 
   useEffect(() => {
     (async () => {
@@ -61,6 +72,11 @@ const CarPickup = () => {
     })();
   }, []);
 
+  useEffect(() => {
+    console.log(bookingData)
+  }, [bookingData])
+
+
 
   useEffect(() => {
     dispatch(getPickupLocations());
@@ -73,7 +89,7 @@ const CarPickup = () => {
   }, [searchQuery, pickupLocations]);
 
   const handleSelect = (item) => {
-    const value = { name: item.name, lat: item.lat, lng: item.lng };
+    const value = { id: item.id, name: item.name, lat: item.lat, lng: item.lng };
     if (activeField === "pickup") setPickup(value);
     if (activeField === "drop") setDrop(value);
     setShowPopup(false);
@@ -110,92 +126,238 @@ const CarPickup = () => {
     setShowPicker(true);
   };
 
+  useEffect(() => {
+    if (pickupRoutes?.length > 0) {
+      setSelectedRoute(pickupRoutes[0]);
+    }
+  }, [pickupRoutes]);
+
+  const [pickupLocationId, setPickupLocationId] = useState("")
+  const [dropLocationId, setDropLocationId] = useState("")
+
+  const handleSearch = () => {
+    console.log('Booking...', { pickup, drop, people, dateTime })
+    // console.log(drop.id)
+    setPickupLocationId(pickup.id)
+    setDropLocationId(drop.id)
+    dispatch(getPickupRoutes({ pickuplocation: pickup.id, dropuplocation: drop.id, numberofpeople: people }))
+    setShowRoutes(true);
+  }
+  const decodedCoordinates = useMemo(() => {
+    if (!selectedRoute?.encodedPolyline) return [];
+
+    return polyline.decode(selectedRoute.encodedPolyline).map(([lat, lng]) => ({
+      latitude: lat,
+      longitude: lng,
+    }));
+  }, [selectedRoute?.encodedPolyline]);
+
+  useEffect(() => {
+    if (selectedRoute?.encodedPolyline) {
+      const coords = polyline.decode(selectedRoute.encodedPolyline).map(([lat, lng]) => ({
+        latitude: lat,
+        longitude: lng,
+      }));
+
+      if (coords.length > 0 && mapRef.current) {
+        requestAnimationFrame(() => {
+          mapRef.current.fitToCoordinates(coords, {
+            edgePadding: {
+              top: 80,
+              right: 80,
+              bottom: 380,
+              left: 80,
+            },
+            animated: true,
+          });
+        });
+      }
+    }
+  }, [selectedRoute]);
+  const recenterToUser = () => {
+    if (region && mapRef.current) {
+      mapRef.current.animateToRegion(region, 1000);
+    }
+  };
+
+  const handleBookRide = (pickups) => {
+    console.log(pickups)
+    const data = {
+      routeid: pickups.routeId,
+      pickuplocation: pickupLocationId,
+      droplocation: dropLocationId,
+      pickUpTime: dateTime
+    }
+    // console.log(data)
+    dispatch(createPickupBooking(data))
+  }
+
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" />
 
       {region && (
         <MapView
+          ref={mapRef}
           provider={PROVIDER_GOOGLE}
           style={StyleSheet.absoluteFillObject}
-          region={region}
+          initialRegion={region}
           showsUserLocation
-          followsUserLocation
+          showsMyLocationButton={false}
+          showsCompass={false}
+          followsUserLocation={!selectedRoute}
         >
+          {selectedRoute && (
+            <>
+              <Polyline
+                coordinates={decodedCoordinates}
+                strokeWidth={4}
+                strokeColor="#2563eb"
+              />
 
-          {pickup && <Marker coordinate={{ latitude: pickup.lat, longitude: pickup.lng }} pinColor="#10b981" />}
-          {drop && <Marker coordinate={{ latitude: drop.lat, longitude: drop.lng }} pinColor="#ef4444" />}
+              {pickup && <Marker coordinate={{ latitude: pickup.lat, longitude: pickup.lng }} pinColor="#10b981" />}
+              {drop && <Marker coordinate={{ latitude: drop.lat, longitude: drop.lng }} pinColor="#ef4444" />}
+            </>
+          )}
         </MapView>
       )}
 
-
-      <View style={styles.bottomCard}>
-        <View style={styles.handle} />
-        <Text style={styles.greeting}>Request a Ride</Text>
-
-        {/* LOCATION SELECTOR */}
-        <View style={styles.locationContainer}>
-          <View style={styles.verticalLineContainer}>
-            <Ionicons name="radio-button-on" size={16} color="#10b981" />
-            <View style={styles.line} />
-            <Ionicons name="location" size={16} color="#ef4444" />
-          </View>
-
-          <View style={styles.inputsWrapper}>
-            <TouchableOpacity
-              style={styles.locationInput}
-              onPress={() => { setActiveField("pickup"); setShowPopup(true); }}
-            >
-              <Text numberOfLines={1} style={[styles.locationText, !pickup && styles.placeholder]}>
-                {pickup ? pickup.name : "Pick-up Point"}
-              </Text>
-            </TouchableOpacity>
-            <View style={styles.divider} />
-            <TouchableOpacity
-              style={styles.locationInput}
-              onPress={() => { setActiveField("drop"); setShowPopup(true); }}
-            >
-              <Text numberOfLines={1} style={[styles.locationText, !drop && styles.placeholder]}>
-                {drop ? drop.name : "Where to?"}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* CHIPS ROW */}
-        <View style={styles.optionsRow}>
-          {/* DATE CHIP */}
-          <TouchableOpacity style={styles.optionChip} onPress={showDatePickerUI}>
-            <Ionicons name="calendar-outline" size={18} color="#2563eb" style={{ marginRight: 6 }} />
-            <Text style={styles.optionLabel}>
-              {format(dateTime, "MMM d, h:mm a")}
-            </Text>
-          </TouchableOpacity>
-
-          {/* PASSENGER CHIP */}
-          <View style={styles.optionChip}>
-            <TouchableOpacity onPress={() => setPeople(Math.max(1, people - 1))}>
-              <Ionicons name="remove-circle-outline" size={24} color={people > 1 ? "#2563eb" : "#d1d5db"} />
-            </TouchableOpacity>
-
-            <View style={styles.passengerTextWrapper}>
-              <Ionicons name="person" size={14} color="#374151" />
-              <Text style={styles.passengerCount}>{people}</Text>
-            </View>
-
-            <TouchableOpacity onPress={() => setPeople(Math.min(MAX_SEATS, people + 1))}>
-              <Ionicons name="add-circle-outline" size={24} color={people < MAX_SEATS ? "#2563eb" : "#d1d5db"} />
-            </TouchableOpacity>
-          </View>
-        </View>
-
+      <View style={styles.bottomSectionWrapper}>
         <TouchableOpacity
-          style={[styles.mainButton, (!pickup || !drop) && styles.disabledButton]}
-          onPress={() => console.log('Booking...', { pickup, drop, people, dateTime })}
-          disabled={!pickup || !drop}
+          style={styles.gpsButton}
+          onPress={recenterToUser}
+          activeOpacity={0.8}
         >
-          <Text style={styles.mainButtonText}>Submit</Text>
+          <Ionicons name="locate" size={24} color="#2563eb" />
         </TouchableOpacity>
+
+        <View style={styles.bottomCard}>
+          <View style={styles.handle} />
+          {!showRoutes ? (
+            <>
+              <Text style={styles.greeting}>Request a Ride</Text>
+
+              {/* LOCATION SELECTOR */}
+              <View style={styles.locationContainer}>
+                <View style={styles.verticalLineContainer}>
+                  <Ionicons name="radio-button-on" size={16} color="#10b981" />
+                  <View style={styles.line} />
+                  <Ionicons name="location" size={16} color="#ef4444" />
+                </View>
+
+                <View style={styles.inputsWrapper}>
+                  <TouchableOpacity
+                    style={styles.locationInput}
+                    onPress={() => { setActiveField("pickup"); setShowPopup(true); }}
+                  >
+                    <Text numberOfLines={1} style={[styles.locationText, !pickup && styles.placeholder]}>
+                      {pickup ? pickup.name : "Pick-up Point"}
+                    </Text>
+                  </TouchableOpacity>
+                  <View style={styles.divider} />
+                  <TouchableOpacity
+                    style={styles.locationInput}
+                    onPress={() => { setActiveField("drop"); setShowPopup(true); }}
+                  >
+                    <Text numberOfLines={1} style={[styles.locationText, !drop && styles.placeholder]}>
+                      {drop ? drop.name : "Where to?"}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              {/* CHIPS ROW */}
+              <View style={styles.optionsRow}>
+                {/* DATE CHIP */}
+                <TouchableOpacity style={styles.optionChip} onPress={showDatePickerUI}>
+                  <Ionicons name="calendar-outline" size={18} color="#2563eb" style={{ marginRight: 6 }} />
+                  <Text style={styles.optionLabel}>
+                    {format(dateTime, "MMM d, h:mm a")}
+                  </Text>
+                </TouchableOpacity>
+
+                {/* PASSENGER CHIP */}
+                <View style={styles.optionChip}>
+                  <TouchableOpacity onPress={() => setPeople(Math.max(1, people - 1))}>
+                    <Ionicons name="remove-circle-outline" size={24} color={people > 1 ? "#2563eb" : "#d1d5db"} />
+                  </TouchableOpacity>
+
+                  <View style={styles.passengerTextWrapper}>
+                    <Ionicons name="person" size={14} color="#374151" />
+                    <Text style={styles.passengerCount}>{people}</Text>
+                  </View>
+
+                  <TouchableOpacity onPress={() => setPeople(Math.min(MAX_SEATS, people + 1))}>
+                    <Ionicons name="add-circle-outline" size={24} color={people < MAX_SEATS ? "#2563eb" : "#d1d5db"} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              <TouchableOpacity
+                style={[styles.mainButton, (!pickup || !drop) && styles.disabledButton]}
+                onPress={() => handleSearch()}
+                disabled={!pickup || !drop}
+              >
+                <Text style={styles.mainButtonText}>Submit</Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <>
+              {/* HEADER */}
+              <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 16 }}>
+                <TouchableOpacity
+                  onPress={() => {
+                    setShowRoutes(false);
+                    setSelectedRoute(null);
+                    dispatch(clearPickupRoutes())
+                    recenterToUser()
+                  }}
+                >
+                  <Ionicons name="arrow-back" size={24} color="#111827" />
+                </TouchableOpacity>
+
+                <Text style={[styles.greeting, { marginLeft: 12 }]}>
+                  Choose a Route
+                </Text>
+              </View>
+
+              {/* ROUTE LIST */}
+              {pickupRoutes?.map((route) => {
+                const isSelected = selectedRoute?.routeId === route.routeId;
+
+                return (
+                  <TouchableOpacity
+                    key={route.routeId}
+                    style={[
+                      styles.routeCard,
+                      isSelected && styles.routeSelected,
+                    ]}
+                    onPress={() => setSelectedRoute(route)}
+                  >
+                    <Text style={styles.routeName}>{route.name}</Text>
+                    <Text style={styles.routeInfo}>
+                      {route.distance.toFixed(1)} km · ₹{Math.round(route.price)}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+
+              {/* BOOK BUTTON */}
+              <TouchableOpacity
+                style={[
+                  styles.mainButton,
+                  !selectedRoute && styles.disabledButton,
+                ]}
+                disabled={!selectedRoute}
+                onPress={() => handleBookRide(selectedRoute)}
+              // onPress={() => console.log("Booking route", selectedRoute)}
+              >
+                <Text style={styles.mainButtonText}>Book Ride</Text>
+              </TouchableOpacity>
+            </>
+          )}
+        </View>
       </View>
 
       {showPicker && (
@@ -220,6 +382,7 @@ const CarPickup = () => {
               <TextInput
                 style={styles.searchBar}
                 placeholder="Search for a place..."
+                placeholderTextColor="#000000"
                 value={searchQuery}
                 onChangeText={setSearchQuery}
                 autoFocus
@@ -348,6 +511,70 @@ const styles = StyleSheet.create({
   },
   resultName: { fontSize: 16, fontWeight: '700', color: '#1e293b' },
   resultSub: { fontSize: 13, color: '#64748b', marginTop: 2 },
+  routeCard: {
+    backgroundColor: "#f8fafc",
+    padding: 16,
+    borderRadius: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+  },
+  routeSelected: {
+    borderColor: "#2563eb",
+    backgroundColor: "#eff6ff",
+  },
+  routeName: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: "#111827",
+  },
+  routeInfo: {
+    marginTop: 4,
+    fontSize: 14,
+    color: "#475569",
+  },
+  bottomSectionWrapper: {
+    position: 'absolute',
+    bottom: 0,
+    width: '100%',
+    zIndex: 10, // Ensure it is above the MapView
+  },
+
+  // 3. THE ATTACHED GPS BUTTON
+  gpsButton: {
+    position: 'absolute',
+    top: -70, // This pulls the button 70px above the white card
+    right: 20,
+    backgroundColor: '#fff',
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+    // Shadow for depth
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+
+  bottomCard: {
+    // REMOVE 'position: absolute' and 'bottom: 0' from here
+    // as it is now controlled by the bottomSectionWrapper
+    width: '100%',
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    padding: 24,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 20,
+  },
+
 });
 
 export default CarPickup;

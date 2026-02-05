@@ -33,8 +33,7 @@ export const getPickupRoutes = createAsyncThunk(
         `&dropuplocation=${encodeURIComponent(dropuplocation)}` +
         `&numberofpeople=${encodeURIComponent(numberofpeople)}`;
 
-      console.log("Request URL:", url);
-
+      console.log(url)
       const response = await api.get(url, {
         headers: {
           "ngrok-skip-browser-warning": "xyz",
