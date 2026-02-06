@@ -86,10 +86,6 @@ const CarPackageSuccessModal = ({
                 Your booking request has been received. You’ll get a payment link
                 within 24 hours — confirm within 48 hours to secure your booking.
               </Text>
-
-              {/* <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
-                <Ionicons name="close" size={22} color="#fff" />
-              </TouchableOpacity> */}
             </View>
 
             {/* WHITE CONTENT BOX */}

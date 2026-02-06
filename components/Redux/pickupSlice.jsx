@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import api from "./api";
+import * as SecureStore from "expo-secure-store";
 // import api from "../api";
 
 export const getPickupLocations = createAsyncThunk(
@@ -57,7 +58,7 @@ export const createPickupBooking = createAsyncThunk(
   "pickup/createPickupBooking",
   async (booking, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem("token");
+      const token = await SecureStore.getItemAsync("token");
       const formattedDate = new Date(booking.pickUpTime).toISOString().split('.')[0];
       const response = await api.post(
         `/v1/private/car-package-bookings/create-booking` +

@@ -13,21 +13,29 @@ import {
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useDispatch, useSelector } from "react-redux";
-import { clearPickupRoutes, createPickupBooking, getPickupLocations, getPickupRoutes } from "../Redux/pickupSlice";
+import { clearBooking, clearPickupRoutes, createPickupBooking, getPickupLocations, getPickupRoutes } from "../Redux/pickupSlice";
 import { format } from "date-fns"; // For sexy date formatting
 import { Ionicons } from "@expo/vector-icons"; // Included in your Expo install
 import * as Location from "expo-location";
 import polyline from "@mapbox/polyline";
 import { Polyline } from "react-native-maps";
+import CarPickupSuccessModal from './../ModalComponent/CarPickupSuccessModal'
+import PaymentFailedModal from './../ModalComponent/PaymentFailedModal'
+import * as SecureStore from "expo-secure-store";
+import { useNavigation } from "@react-navigation/native";
+import Toast from 'react-native-root-toast';
+import LottieView from "lottie-react-native";
+import { differenceInMinutes, parseISO } from "date-fns";
 
 
 
 const MAX_SEATS = 6;
 
 const CarPickup = () => {
+  const navigation = useNavigation();
   const mapRef = useRef(null);
   const dispatch = useDispatch();
-  const { pickupLocations, pickupRoutes, errorRoutes, bookingData } = useSelector((state) => state.pickup);
+  const { pickupLocations, pickupRoutes, errorRoutes, bookingData, errorBooking } = useSelector((state) => state.pickup);
 
   const [pickup, setPickup] = useState(null);
   const [drop, setDrop] = useState(null);
@@ -44,10 +52,22 @@ const CarPickup = () => {
   const [locationError, setLocationError] = useState(null);
   const [showRoutes, setShowRoutes] = useState(false);
   const [selectedRoute, setSelectedRoute] = useState(null);
+  const [routeError, setRouteError] = useState(false)
+
+  //Modals
+  const [showSuccess, setShowSuccess] = useState(false)
+  const [showFailure, setShowFailure] = useState(false)
 
   useEffect(() => {
     dispatch(clearPickupRoutes())
   }, [])
+
+  useEffect(() => {
+    if (errorRoutes !== null) {
+      setRouteError(true)
+    }
+  }, [errorRoutes])
+
 
 
   useEffect(() => {
@@ -73,9 +93,15 @@ const CarPickup = () => {
   }, []);
 
   useEffect(() => {
-    console.log(bookingData)
+    if (bookingData !== null) {
+      setShowSuccess(true)
+    }
   }, [bookingData])
-
+  useEffect(() => {
+    if (errorBooking !== null) {
+      setShowFailure(true)
+    }
+  }, [errorBooking])
 
 
   useEffect(() => {
@@ -135,13 +161,38 @@ const CarPickup = () => {
   const [pickupLocationId, setPickupLocationId] = useState("")
   const [dropLocationId, setDropLocationId] = useState("")
 
+  const checkTime = (time) => {
+    const selectedTime = new Date(time); // Your dateTime variable
+    const currentTime = new Date();
+
+    const minutesDiff = differenceInMinutes(selectedTime, currentTime);
+
+    if (minutesDiff < 60) {
+      return false;
+    } else {
+      return true;
+    }
+  };
+
   const handleSearch = () => {
-    console.log('Booking...', { pickup, drop, people, dateTime })
-    // console.log(drop.id)
-    setPickupLocationId(pickup.id)
-    setDropLocationId(drop.id)
-    dispatch(getPickupRoutes({ pickuplocation: pickup.id, dropuplocation: drop.id, numberofpeople: people }))
-    setShowRoutes(true);
+    const timeFlag = checkTime(dateTime)
+    if (timeFlag) {
+      setRouteError(false)
+      setPickupLocationId(pickup.id)
+      setDropLocationId(drop.id)
+      dispatch(getPickupRoutes({ pickuplocation: pickup.id, dropuplocation: drop.id, numberofpeople: people }))
+      setShowRoutes(true);
+    } else {
+      let toast = Toast.show("Pickup time must be after 1 hour from now!", {
+        duration: Toast.durations.SHORT,
+        position: Toast.positions.BOTTOM,
+        shadow: true,
+        animation: true,
+        hideOnPress: true,
+        delay: 0,
+      });
+      setTimeout(() => Toast.hide(toast), 2000);
+    }
   }
   const decodedCoordinates = useMemo(() => {
     if (!selectedRoute?.encodedPolyline) return [];
@@ -180,7 +231,7 @@ const CarPickup = () => {
     }
   };
 
-  const handleBookRide = (pickups) => {
+  const handleBookRide = async (pickups) => {
     console.log(pickups)
     const data = {
       routeid: pickups.routeId,
@@ -189,14 +240,40 @@ const CarPickup = () => {
       pickUpTime: dateTime
     }
     // console.log(data)
-    dispatch(createPickupBooking(data))
+    const token = await SecureStore.getItemAsync("token");
+    if (token) {
+      dispatch(createPickupBooking(data))
+    } else {
+      navigation.navigate("Profile");
+      let toast = Toast.show("Please Login First!", {
+        duration: Toast.durations.SHORT,
+        position: Toast.positions.BOTTOM,
+        shadow: true,
+        animation: true,
+        hideOnPress: true,
+        delay: 0,
+      });
+      setTimeout(() => Toast.hide(toast), 2000);
+    }
   }
 
+  if (!region) {
+    return (
+      <View style={styles.loadingContainer}>
+        <LottieView
+          source={require("../../assets/Lottie/InfinityLoader.json")} // Ensure path is correct
+          autoPlay
+          loop
+          style={styles.lottie}
+        />
+        {/* <Text style={styles.loadingText}>Locating you...</Text> */}
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" />
-
       {region && (
         <MapView
           ref={mapRef}
@@ -310,51 +387,63 @@ const CarPickup = () => {
                   onPress={() => {
                     setShowRoutes(false);
                     setSelectedRoute(null);
-                    dispatch(clearPickupRoutes())
-                    recenterToUser()
+                    dispatch(clearPickupRoutes());
+                    setRouteError(false); // Reset error state
+                    recenterToUser();
                   }}
                 >
                   <Ionicons name="arrow-back" size={24} color="#111827" />
                 </TouchableOpacity>
 
                 <Text style={[styles.greeting, { marginLeft: 12 }]}>
-                  Choose a Route
+                  {pickupRoutes?.length > 0 ? "Choose a Route" : "No Routes Found"}
                 </Text>
               </View>
 
-              {/* ROUTE LIST */}
-              {pickupRoutes?.map((route) => {
-                const isSelected = selectedRoute?.routeId === route.routeId;
-
-                return (
+              {/* CONDITIONAL RENDERING: Error/Empty vs List */}
+              {!pickupRoutes || pickupRoutes.length === 0 || routeError ? (
+                <View style={styles.errorContainer}>
+                  <Ionicons name="alert-circle-outline" size={60} color="#ef4444" />
+                  <Text style={styles.errorTitle}>Sorry!</Text>
+                  <Text style={styles.errorSub}>
+                    We couldn't find any available routes for this selection.
+                  </Text>
                   <TouchableOpacity
-                    key={route.routeId}
-                    style={[
-                      styles.routeCard,
-                      isSelected && styles.routeSelected,
-                    ]}
-                    onPress={() => setSelectedRoute(route)}
+                    style={styles.retryButton}
+                    onPress={() => setShowRoutes(false)}
                   >
-                    <Text style={styles.routeName}>{route.name}</Text>
-                    <Text style={styles.routeInfo}>
-                      {route.distance.toFixed(1)} km · ₹{Math.round(route.price)}
-                    </Text>
+                    <Text style={styles.retryButtonText}>Try another location</Text>
                   </TouchableOpacity>
-                );
-              })}
+                </View>
+              ) : (
+                <>
+                  {/* ROUTE LIST */}
+                  {pickupRoutes.map((route) => {
+                    const isSelected = selectedRoute?.routeId === route.routeId;
+                    return (
+                      <TouchableOpacity
+                        key={route.routeId}
+                        style={[styles.routeCard, isSelected && styles.routeSelected]}
+                        onPress={() => setSelectedRoute(route)}
+                      >
+                        <Text style={styles.routeName}>{route.name}</Text>
+                        <Text style={styles.routeInfo}>
+                          {route.distance.toFixed(1)} km · ₹{Math.round(route.price)}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
 
-              {/* BOOK BUTTON */}
-              <TouchableOpacity
-                style={[
-                  styles.mainButton,
-                  !selectedRoute && styles.disabledButton,
-                ]}
-                disabled={!selectedRoute}
-                onPress={() => handleBookRide(selectedRoute)}
-              // onPress={() => console.log("Booking route", selectedRoute)}
-              >
-                <Text style={styles.mainButtonText}>Book Ride</Text>
-              </TouchableOpacity>
+                  {/* BOOK BUTTON */}
+                  <TouchableOpacity
+                    style={[styles.mainButton, !selectedRoute && styles.disabledButton]}
+                    disabled={!selectedRoute}
+                    onPress={async () => await handleBookRide(selectedRoute)}
+                  >
+                    <Text style={styles.mainButtonText}>Book Ride</Text>
+                  </TouchableOpacity>
+                </>
+              )}
             </>
           )}
         </View>
@@ -408,6 +497,42 @@ const CarPickup = () => {
           </View>
         </View>
       </Modal>
+      <CarPickupSuccessModal
+        visible={showSuccess}
+        bookingId={bookingData?.bookingId}
+        pickUpLocation={bookingData?.pickUpLocation}
+        dropLocation={bookingData?.dropLocation}
+        pickUpTime={bookingData?.pickUpTime}
+        numberOfPeople={bookingData?.numberOfPeople}
+        price={bookingData?.price}
+        onClose={() => {
+          setShowSuccess(false)
+          dispatch(clearPickupRoutes())
+          dispatch(clearBooking())
+          setPickup(null)
+          setDrop(null)
+          setPeople(1)
+          setDateTime(new Date())
+          recenterToUser()
+          setShowRoutes(false);
+          setSelectedRoute(null);
+        }}
+      />
+      <PaymentFailedModal
+        visible={showFailure}
+        onClose={() => {
+          setShowFailure(false)
+          dispatch(clearPickupRoutes())
+          dispatch(clearBooking())
+          setPickup(null)
+          setDrop(null)
+          setPeople(1)
+          setDateTime(new Date())
+          recenterToUser()
+          setShowRoutes(false);
+          setSelectedRoute(null);
+        }}
+      />
     </View>
   );
 };
@@ -573,6 +698,56 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 10,
     elevation: 20,
+  },
+
+  //loading lottie
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: "#ffffff",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  lottie: {
+    width: 200,
+    height: 200,
+  },
+  loadingText: {
+    marginTop: 20,
+    fontSize: 16,
+    color: "#2563eb",
+    fontWeight: "600",
+  },
+
+  errorContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 30,
+  },
+  errorTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#111827',
+    marginTop: 10,
+  },
+  errorSub: {
+    fontSize: 14,
+    color: '#64748b',
+    textAlign: 'center',
+    marginTop: 8,
+    paddingHorizontal: 20,
+    lineHeight: 20,
+  },
+  retryButton: {
+    marginTop: 20,
+    backgroundColor: '#f1f5f9',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+  },
+  retryButtonText: {
+    color: '#2563eb',
+    fontWeight: '700',
+    fontSize: 14,
   },
 
 });
