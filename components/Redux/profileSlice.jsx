@@ -2,6 +2,7 @@
 
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api, { api2 } from "./api";
+import * as SecureStore from "expo-secure-store";
 
 // ----------------- Upload profile image -----------------
 export const uploadProfileImage = createAsyncThunk(
@@ -160,6 +161,80 @@ export const fetchUserTourPackageBookings = createAsyncThunk(
   }
 );
 
+export const getLatestCarPickupBooking = createAsyncThunk(
+  "profile/getLatestBooking",
+  async (_, { rejectWithValue }) => {
+    try {
+      const token = await SecureStore.getItemAsync("token");
+
+      const response = await api.get(
+        "/v1/private/car-package-bookings/get-latest-booking",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "ngrok-skip-browser-warning": "xyz",
+          },
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { message: "Get all cars failed" }
+      );
+    }
+  }
+);
+export const getAllCarPickupBookings = createAsyncThunk(
+  "profile/getAllCarPickupBookings",
+  async (_, { rejectWithValue }) => {
+    try {
+      const token = await SecureStore.getItemAsync("token");
+      const response = await api.get(
+        "/v1/private/car-package-bookings/get-all-bookings",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "ngrok-skip-browser-warning": "xyz",
+          },
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { message: "Get all cars failed" }
+      );
+    }
+  }
+);
+export const cancelCarPickupBookings = createAsyncThunk(
+  "profile/cancelCarPickupBookings ",
+  async ({ bookingId }, { rejectWithValue }) => {
+    try {
+      const token = await SecureStore.getItemAsync("token");
+
+      const response = await api.patch(
+        "/v1/private/car-package-bookings/customer-cancel-booking",
+        {},
+        {
+          params: { bookingId },
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "ngrok-skip-browser-warning": "xyz",
+          },
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { message: "Get all cars failed" }
+      );
+    }
+  }
+);
+
 
 // ----------------- Slice -----------------
 const profileSlice = createSlice({
@@ -183,8 +258,29 @@ const profileSlice = createSlice({
     tourPackageBookingsLoading: false,
     tourPackageBookingsError: null,
     tourPackageBookingsStatus: null,
+
+     // ✅ latest car pickup booking
+    latestCarPickupBooking: null,
+    latestCarPickupBookingLoading: false,
+    latestCarPickupBookingError: null,
+
+    // ✅ all car pickup bookings
+    allCarPickupBookclings: [],
+    allCarPickupBookingsLoading: false,
+    allCarPickupBookingsError: null,
+
+    // cancel car pickup booking (customer)
+    cancelCarPickupBookingLoading: false,
+    cancelCarPickupBookingError: null,
+    cancelCarPickupBookingSuccess: false,
   },
-  reducers: {},
+  reducers: {
+    resetCancel: (state) => {
+      state.cancelCarPickupBookingSuccess = false;
+      state.cancelCarPickupBookingError = null;
+      state.cancelCarPickupBookingLoading = false
+    }
+  },
   extraReducers: (builder) => {
     // Upload Image
     builder
@@ -276,8 +372,56 @@ const profileSlice = createSlice({
         state.tourPackageBookingsLoading = false;
         state.tourPackageBookingsError = action.payload;
       });
+      // ---------------- ✅ Latest Car Pickup Booking ----------------
+      builder
+      .addCase(getLatestCarPickupBooking.pending, (state) => {
+        state.latestCarPickupBookingLoading = true;
+        state.latestCarPickupBookingError = null;
+      })
+      .addCase(getLatestCarPickupBooking.fulfilled, (state, action) => {
+        state.latestCarPickupBookingLoading = false;
+        state.latestCarPickupBooking = action.payload;
+      })
+      .addCase(getLatestCarPickupBooking.rejected, (state, action) => {
+        state.latestCarPickupBookingLoading = false;
+        state.latestCarPickupBookingError = action.payload;
+      });
+
+    // ---------------- ✅ All Car Pickup Bookings ----------------
+    builder
+      .addCase(getAllCarPickupBookings.pending, (state) => {
+        state.allCarPickupBookingsLoading = true;
+        state.allCarPickupBookingsError = null;
+      })
+      .addCase(getAllCarPickupBookings.fulfilled, (state, action) => {
+        state.allCarPickupBookingsLoading = false;
+        state.allCarPickupBookings = action.payload;
+      })
+      .addCase(getAllCarPickupBookings.rejected, (state, action) => {
+        state.allCarPickupBookingsLoading = false;
+        state.allCarPickupBookingsError = action.payload;
+      });
+
+    // ---------------- ✅ Cancel Car Pickup Booking ----------------
+    builder
+      .addCase(cancelCarPickupBookings.pending, (state) => {
+        state.cancelCarPickupBookingLoading = true;
+        state.cancelCarPickupBookingError = null;
+        state.cancelCarPickupBookingSuccess = false;
+      })
+      .addCase(cancelCarPickupBookings.fulfilled, (state) => {
+        state.cancelCarPickupBookingLoading = false;
+        state.cancelCarPickupBookingSuccess = true;
+      })
+      .addCase(cancelCarPickupBookings.rejected, (state, action) => {
+        state.cancelCarPickupBookingLoading = false;
+        state.cancelCarPickupBookingError =
+          action.payload?.message || "Cancel booking failed";
+      });
 
   },
 });
+
+export const { resetCancel } = profileSlice.actions;
 
 export default profileSlice.reducer;

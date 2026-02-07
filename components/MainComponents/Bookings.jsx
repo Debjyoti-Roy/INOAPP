@@ -4,7 +4,7 @@ import TabButton from "./MainPageComponents/TabButton"
 import HotelBookings from './BookingsComponents/HotelBookings'
 import MyTourQueries from './BookingsComponents/MyTourQueries'
 import MyCarPackageBookings from './BookingsComponents/MyCarPackageBookings'
-// import HotelBookings from './BookingsComponents/HotelBookings'
+import MyCarPickupBookings from './BookingsComponents/MyCarPickupBookings'
 
 
 const { height } = Dimensions.get('window');
@@ -25,6 +25,10 @@ const Bookings = () => {
       return (
         <MyCarPackageBookings />
       )
+    } else if (activeTab === 'carspickup'){
+      return (
+        <MyCarPickupBookings />
+      )
     }
   }
   return (
@@ -35,6 +39,7 @@ const Bookings = () => {
           <TabButton icon="box-open" label="Package" onPress={() => setActiveTab('packages')} isActive={activeTab === 'packages'} />
           <TabButton icon="hotel" label="Hotels" onPress={() => setActiveTab('hotels')} isActive={activeTab === 'hotels'} />
           <TabButton icon="car" label="Cars" onPress={() => setActiveTab('cars')} isActive={activeTab === 'cars'} />
+          <TabButton icon="car" label="Pickup" onPress={() => setActiveTab('carspickup')} isActive={activeTab === 'carspickup'} />
         </View>
       </View>
       {renderTab()}
