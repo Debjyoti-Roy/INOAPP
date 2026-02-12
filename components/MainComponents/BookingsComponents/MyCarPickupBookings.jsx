@@ -135,16 +135,6 @@ const MyCarPickupBookings = () => {
             </View>
 
             <View style={styles.mapContainer}>
-                {/* <MapView
-                    provider={PROVIDER_GOOGLE}
-                    style={styles.map}
-                    initialRegion={{
-                        latitude: 26.7271,
-                        longitude: 88.3953,
-                        latitudeDelta: 0.05,
-                        longitudeDelta: 0.05,
-                    }}
-                /> */}
                 <MapView
                     ref={mapRef}
                     provider={PROVIDER_GOOGLE}

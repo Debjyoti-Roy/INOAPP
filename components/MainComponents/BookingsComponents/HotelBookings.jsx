@@ -23,6 +23,7 @@ import { confirmPayment } from '@/components/Redux/paymentSlice';
 import Toast from 'react-native-root-toast';
 import RazorpayCheckout from 'react-native-razorpay';
 import Constants from "expo-constants";
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import PaymentSuccessfulModal from '@/components/ModalComponent/PaymentSuccessfulModal';
 import PaymentFailedModal from '@/components/ModalComponent/PaymentFailedModal';
 
@@ -87,8 +88,16 @@ const HotelBookings = () => {
   const [showNotEligibleModal, setShowNotEligibleModal] = useState(false);
   const [notEligibleMessage, setNotEligibleMessage] = useState("");
 
+
+
   //Button scheduler
   const [now, setNow] = useState(new Date());
+
+  const [expandedId, setExpandedId] = useState(null);
+
+  const toggleExpand2 = (id) => {
+    setExpandedId(expandedId === id ? null : id);
+  };
 
   useEffect(() => {
     // Update every 1 minute (or 1 second if you need more accuracy)
@@ -337,6 +346,21 @@ const HotelBookings = () => {
       console.log("Error opening Razorpay:", error);
     }
   };
+
+  const getStatusStyle = (status) => {
+    switch (status) {
+      case 'CONFIRMED':
+      case 'COMPLETED':
+        return list.statusConfirmed;
+      case 'CANCELLED':
+      case 'REJECTED':
+        return list.statusCancelled;
+      case 'PARTIALLY_CANCELLED':
+        return list.statusPartial;
+      default:
+        return list.statusPending;
+    }
+  };
   return (
     <ScrollView style={list.container} contentContainerStyle={list.contentContainer}>
       <View style={list.innerContainer}>
@@ -447,179 +471,262 @@ const HotelBookings = () => {
           </View>
         ) : bookings.length > 0 ? (
           /* Bookings List */
+          // <FlatList
+          //   data={bookings}
+          //   keyExtractor={(item) => item.bookingGroupCode}
+          //   scrollEnabled={false}
+          //   renderItem={({ item }) => (
+          //     <TouchableOpacity
+          //       style={list.bookingCard}
+          //       onPress={() => toggleExpand(item.bookingGroupCode)}
+          //       activeOpacity={0.7}
+          //     >
+          //       {/* Booking Header */}
+          //       <View style={list.bookingHeader}>
+          //         <View style={list.bookingHeaderLeft}>
+          //           <Text style={list.bookingId}>
+          //             Booking ID: <Text style={list.bookingIdBold}>{item.bookingGroupCode}</Text>
+          //           </Text>
+          //           <Text style={list.bookingTitle}>
+          //             {item.numberOfGuests} Guest{item.numberOfGuests > 1 ? 's' : ''} |{' '}
+          //             {item.roomBookingsList.length} Room Type
+          //             {item.roomBookingsList.length > 1 ? 's' : ''}
+          //           </Text>
+
+          //           {/* Hotel Name and Status */}
+          //           <View style={list.hotelNameRow}>
+          //             <Text style={list.hotelName}>{item.hotelName}</Text>
+          //             <View
+          //               style={[
+          //                 list.statusBadge,
+          //                 item.status === 'CONFIRMED' && list.statusConfirmed,
+          //                 item.status === 'CANCELLED' && list.statusCancelled,
+          //                 item.status === 'PARTIALLY_CANCELLED' && list.statusPartial,
+          //                 item.status === 'COMPLETED' && list.statusCompleted,
+          //               ]}
+          //             >
+          //               <Text style={list.statusText}>
+          //                 {item.status.replace(/_/g, ' ')}
+          //               </Text>
+          //             </View>
+          //           </View>
+
+          //           {/* Room Details */}
+          //           <View style={list.roomList}>
+          //             {item.roomBookingsList.map((room, idx) => (
+          //               <View key={idx} style={list.roomItem}>
+          //                 <Text style={list.roomText}>
+          //                   <Text style={list.roomTextBold}>{room.roomName}</Text> (
+          //                   {room.numberOfRooms} room{room.numberOfRooms > 1 ? 's' : ''}) — ₹
+          //                   {room.totalPrice}
+          //                 </Text>
+          //                 {item.status === 'PARTIALLY_CANCELLED' && (
+          //                   <View
+          //                     style={[
+          //                       list.statusBadge,
+          //                       list.statusBadgeSmall,
+          //                       room.status === 'CONFIRMED' && list.statusConfirmed,
+          //                       room.status === 'CANCELLED' && list.statusCancelled,
+          //                     ]}
+          //                   >
+          //                     <Text style={[list.statusText, list.statusTextSmall]}>
+          //                       {room.status.replace(/_/g, ' ')}
+          //                     </Text>
+          //                   </View>
+          //                 )}
+          //               </View>
+          //             ))}
+          //           </View>
+
+          //           {/* Hotel Details */}
+          //           <View style={list.hotelDetails}>
+          //             <Text style={list.hotelDetailsText}>{item.hotelAddress}</Text>
+          //             <Text style={list.hotelDetailsText}>{item.hotelContact}</Text>
+          //           </View>
+          //         </View>
+
+          //         {(item.status === "PENDING" || item.status === "PAYMENT PENDING" || item.status === "AWAITING_CUSTOMER_PAYMENT") && (
+          //           <PaymentDeadline expiredAt={item.expiredAt} />
+          //         )}
+          //         {/* Right Side Info */}
+          //         <View style={list.bookingHeaderRight}>
+          //           <Text style={list.infoText}>Check-in: {item.checkIn}</Text>
+          //           <Text style={list.infoText}>Check-out: {item.checkOut}</Text>
+          //           <Text style={list.infoText}>Total Guests: {item.numberOfGuests}</Text>
+          //           <Text style={list.totalPrice}>Total Price: ₹{item.totalPrice}</Text>
+          //         </View>
+          //       </View>
+
+          //       {/* Action Buttons */}
+          //       <View style={list.actionButtonsContainer}>
+          //         {item.status === 'CONFIRMED' && (
+          //           <TouchableOpacity
+          //             style={[list.actionButton, list.actionButtonDanger]}
+          //             onPress={() => {
+          //               const today = new Date();
+          //               const checkInDate = new Date(item.checkIn);
+          //               const diffTime = checkInDate - today;
+          //               const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          //               if (diffDays <= 10) {
+          //                 setPendingCancelBookingId(item.bookingGroupCode);
+          //                 setShowNotEligibleConfirmModal(true);
+          //               } else {
+          //                 setShowCancelModal(true);
+          //                 setCancelBookingId(item.bookingGroupCode);
+          //                 setCancelReason('');
+          //                 setShowCustomReason(false);
+          //               }
+          //             }}
+          //           >
+          //             <Text style={list.actionButtonText}>Cancel Booking</Text>
+          //           </TouchableOpacity>
+          //         )}
+
+          //         {(item.status === 'CANCELLED' || item.status === 'REJECTED') && (
+          //           <TouchableOpacity
+          //             style={[list.actionButton, list.actionButtonPrimary]}
+          //             onPress={() => handleRefundStatus(item.bookingGroupCode)}
+          //           >
+          //             <Text style={list.actionButtonText}>See Refund Status</Text>
+          //           </TouchableOpacity>
+          //         )}
+
+          //         {item.status === 'PENDING' && now < new Date(item.expiredAt || Date.now()) && (
+          //           <TouchableOpacity
+          //             style={[list.actionButton, list.actionButtonSuccess]}
+          //             onPress={async () => {
+          //               const payment = item.payments;
+          //               const pay = payment.filter(item => item.paymentType === "FINAL");
+          //               const razorId = pay[0]?.razorpayOrderId;
+          //               setTotal(item.numberOfGuests)
+          //               setCheckIn(item.checkIn)
+          //               setCheckOut(item.checkOut)
+          //               setBookingId(item.bookingGroupCode)
+          //               await openRazorpay(razorId)
+          //             }}
+          //           >
+          //             <Text style={list.actionButtonText}>Pay Now</Text>
+          //           </TouchableOpacity>
+          //         )}
+
+          //         {item.status === 'AWAITING_CUSTOMER_PAYMENT' &&
+          //           now < new Date(item.expiredAt || Date.now()) && (
+          //             <>
+          //               <TouchableOpacity
+          //                 style={[list.actionButton, list.actionButtonDanger]}
+          //                 onPress={() => {
+          //                   setShowCancelModal(true);
+          //                   setCancelBookingId(item.bookingGroupCode);
+          //                   setCancelReason('');
+          //                   setShowCustomReason(false);
+          //                 }}
+          //               >
+          //                 <Text style={list.actionButtonText}>Cancel</Text>
+          //               </TouchableOpacity>
+          //               <TouchableOpacity
+          //                 style={[list.actionButton, list.actionButtonSuccess]}
+          //                 onPress={async () => {
+          //                   const payment = item.payments;
+          //                   const pay = payment.filter(item => item.paymentType === "FINAL");
+          //                   const razorId = pay[0]?.razorpayOrderId;
+          //                   console.log('Pay Now clicked');
+          //                   setTotal(item.numberOfGuests)
+          //                   setCheckIn(item.checkIn)
+          //                   setCheckOut(item.checkOut)
+          //                   setBookingId(item.bookingGroupCode)
+          //                   await openRazorpay(razorId)
+          //                 }}
+          //               >
+          //                 <Text style={list.actionButtonText}>Pay Now</Text>
+          //               </TouchableOpacity>
+          //             </>
+          //           )}
+          //       </View>
+          //     </TouchableOpacity>
+          //   )}
+          // />
           <FlatList
             data={bookings}
             keyExtractor={(item) => item.bookingGroupCode}
             scrollEnabled={false}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={list.bookingCard}
-                onPress={() => toggleExpand(item.bookingGroupCode)}
-                activeOpacity={0.7}
-              >
-                {/* Booking Header */}
-                <View style={list.bookingHeader}>
-                  <View style={list.bookingHeaderLeft}>
-                    <Text style={list.bookingId}>
-                      Booking ID: <Text style={list.bookingIdBold}>{item.bookingGroupCode}</Text>
-                    </Text>
-                    <Text style={list.bookingTitle}>
-                      {item.numberOfGuests} Guest{item.numberOfGuests > 1 ? 's' : ''} |{' '}
-                      {item.roomBookingsList.length} Room Type
-                      {item.roomBookingsList.length > 1 ? 's' : ''}
-                    </Text>
+            renderItem={({ item }) => {
+              const isExpanded = expandedId === item.bookingGroupCode;
 
-                    {/* Hotel Name and Status */}
-                    <View style={list.hotelNameRow}>
-                      <Text style={list.hotelName}>{item.hotelName}</Text>
-                      <View
-                        style={[
-                          list.statusBadge,
-                          item.status === 'CONFIRMED' && list.statusConfirmed,
-                          item.status === 'CANCELLED' && list.statusCancelled,
-                          item.status === 'PARTIALLY_CANCELLED' && list.statusPartial,
-                          item.status === 'COMPLETED' && list.statusCompleted,
-                        ]}
-                      >
-                        <Text style={list.statusText}>
-                          {item.status.replace(/_/g, ' ')}
+              return (
+                <View style={list.bookingCardContainer}>
+                  <TouchableOpacity
+                    style={list.bookingCard}
+                    onPress={() => toggleExpand2(item.bookingGroupCode)}
+                    activeOpacity={0.9}
+                  >
+                    {/* Main Card Content */}
+                    <View style={list.bookingHeader}>
+                      <View style={list.bookingHeaderLeft}>
+                        <Text style={list.bookingId}>
+                          Booking ID: <Text style={list.bookingIdBold}>{item.bookingGroupCode}</Text>
+                        </Text>
+
+                        <View style={list.hotelNameRow}>
+                          <Text style={list.hotelName}>{item.hotelName}</Text>
+                          <View style={[list.statusBadge, getStatusStyle(item.status)]}>
+                            <Text style={list.statusText}>{item.status.replace(/_/g, ' ')}</Text>
+                          </View>
+                        </View>
+
+                        <Text style={list.bookingTitle}>
+                          {item.numberOfGuests} Guests • {item.roomBookingsList.length} Room Types
                         </Text>
                       </View>
+
+                      <View style={list.bookingHeaderRight}>
+                        <Text style={list.totalPrice}>₹{item.totalPrice}</Text>
+                        <MaterialCommunityIcons
+                          name={isExpanded ? "chevron-up" : "chevron-down"}
+                          size={20}
+                          color="#94a3b8"
+                        />
+                      </View>
+                      {(item.status === "PENDING" || item.status === "PAYMENT PENDING" || item.status === "AWAITING_CUSTOMER_PAYMENT") && (
+                        <PaymentDeadline expiredAt={item.expiredAt} />
+                      )}
                     </View>
 
-                    {/* Room Details */}
-                    <View style={list.roomList}>
-                      {item.roomBookingsList.map((room, idx) => (
-                        <View key={idx} style={list.roomItem}>
-                          <Text style={list.roomText}>
-                            <Text style={list.roomTextBold}>{room.roomName}</Text> (
-                            {room.numberOfRooms} room{room.numberOfRooms > 1 ? 's' : ''}) — ₹
-                            {room.totalPrice}
-                          </Text>
-                          {item.status === 'PARTIALLY_CANCELLED' && (
-                            <View
-                              style={[
-                                list.statusBadge,
-                                list.statusBadgeSmall,
-                                room.status === 'CONFIRMED' && list.statusConfirmed,
-                                room.status === 'CANCELLED' && list.statusCancelled,
-                              ]}
-                            >
-                              <Text style={[list.statusText, list.statusTextSmall]}>
-                                {room.status.replace(/_/g, ' ')}
+                    {/* Collapsible Section */}
+                    {isExpanded && (
+                      <View style={list.collapsibleContent}>
+                        <View style={list.divider} />
+
+                        <View style={list.roomList}>
+                          {item.roomBookingsList.map((room, idx) => (
+                            <View key={idx} style={list.roomItem}>
+                              <Text style={list.roomText}>
+                                <Text style={list.roomTextBold}>{room.roomName}</Text> ({room.numberOfRooms} rooms)
                               </Text>
                             </View>
-                          )}
+                          ))}
                         </View>
-                      ))}
-                    </View>
 
-                    {/* Hotel Details */}
-                    <View style={list.hotelDetails}>
-                      <Text style={list.hotelDetailsText}>{item.hotelAddress}</Text>
-                      <Text style={list.hotelDetailsText}>{item.hotelContact}</Text>
-                    </View>
-                  </View>
+                        <View style={list.hotelDetails}>
+                          <Text style={list.hotelDetailsText}><MaterialCommunityIcons name="map-marker" size={12} /> {item.hotelAddress}</Text>
+                          <Text style={list.hotelDetailsText}><MaterialCommunityIcons name="calendar" size={12} /> {item.checkIn} to {item.checkOut}</Text>
+                        </View>
+                      </View>
+                    )}
+                  </TouchableOpacity>
 
-                  {(item.status === "PENDING" || item.status === "PAYMENT PENDING" || item.status === "AWAITING_CUSTOMER_PAYMENT") && (
-                    <PaymentDeadline expiredAt={item.expiredAt} />
-                  )}
-                  {/* Right Side Info */}
-                  <View style={list.bookingHeaderRight}>
-                    <Text style={list.infoText}>Check-in: {item.checkIn}</Text>
-                    <Text style={list.infoText}>Check-out: {item.checkOut}</Text>
-                    <Text style={list.infoText}>Total Guests: {item.numberOfGuests}</Text>
-                    <Text style={list.totalPrice}>Total Price: ₹{item.totalPrice}</Text>
-                  </View>
-                </View>
-
-                {/* Action Buttons */}
-                <View style={list.actionButtonsContainer}>
+                  {/* Footer Cancel Button (Matching your first design exactly) */}
                   {item.status === 'CONFIRMED' && (
                     <TouchableOpacity
-                      style={[list.actionButton, list.actionButtonDanger]}
-                      onPress={() => {
-                        const today = new Date();
-                        const checkInDate = new Date(item.checkIn);
-                        const diffTime = checkInDate - today;
-                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                        if (diffDays <= 10) {
-                          setPendingCancelBookingId(item.bookingGroupCode);
-                          setShowNotEligibleConfirmModal(true);
-                        } else {
-                          setShowCancelModal(true);
-                          setCancelBookingId(item.bookingGroupCode);
-                          setCancelReason('');
-                          setShowCustomReason(false);
-                        }
-                      }}
+                      style={list.listCancelButton}
+                      onPress={() => handleCancelLogic(item)}
                     >
-                      <Text style={list.actionButtonText}>Cancel Booking</Text>
+                      <MaterialCommunityIcons name="close-circle-outline" size={16} color="#e11d48" />
+                      <Text style={list.listCancelButtonText}>Cancel Booking</Text>
                     </TouchableOpacity>
                   )}
-
-                  {(item.status === 'CANCELLED' || item.status === 'REJECTED') && (
-                    <TouchableOpacity
-                      style={[list.actionButton, list.actionButtonPrimary]}
-                      onPress={() => handleRefundStatus(item.bookingGroupCode)}
-                    >
-                      <Text style={list.actionButtonText}>See Refund Status</Text>
-                    </TouchableOpacity>
-                  )}
-
-                  {item.status === 'PENDING' && now < new Date(item.expiredAt || Date.now()) && (
-                    <TouchableOpacity
-                      style={[list.actionButton, list.actionButtonSuccess]}
-                      onPress={async () => {
-                        const payment = item.payments;
-                        const pay = payment.filter(item => item.paymentType === "FINAL");
-                        const razorId = pay[0]?.razorpayOrderId;
-                        setTotal(item.numberOfGuests)
-                        setCheckIn(item.checkIn)
-                        setCheckOut(item.checkOut)
-                        setBookingId(item.bookingGroupCode)
-                        await openRazorpay(razorId)
-                      }}
-                    >
-                      <Text style={list.actionButtonText}>Pay Now</Text>
-                    </TouchableOpacity>
-                  )}
-
-                  {item.status === 'AWAITING_CUSTOMER_PAYMENT' &&
-                    now < new Date(item.expiredAt || Date.now()) && (
-                      <>
-                        <TouchableOpacity
-                          style={[list.actionButton, list.actionButtonDanger]}
-                          onPress={() => {
-                            setShowCancelModal(true);
-                            setCancelBookingId(item.bookingGroupCode);
-                            setCancelReason('');
-                            setShowCustomReason(false);
-                          }}
-                        >
-                          <Text style={list.actionButtonText}>Cancel</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          style={[list.actionButton, list.actionButtonSuccess]}
-                          onPress={async () => {
-                            const payment = item.payments;
-                            const pay = payment.filter(item => item.paymentType === "FINAL");
-                            const razorId = pay[0]?.razorpayOrderId;
-                            console.log('Pay Now clicked');
-                            setTotal(item.numberOfGuests)
-                            setCheckIn(item.checkIn)
-                            setCheckOut(item.checkOut)
-                            setBookingId(item.bookingGroupCode)
-                            await openRazorpay(razorId)
-                          }}
-                        >
-                          <Text style={list.actionButtonText}>Pay Now</Text>
-                        </TouchableOpacity>
-                      </>
-                    )}
                 </View>
-              </TouchableOpacity>
-            )}
+              );
+            }}
           />
         ) : (
           /* Empty State */
@@ -1003,8 +1110,8 @@ export const list = StyleSheet.create({
     flex: 1,
   },
   contentContainer: {
-    paddingTop: 40,
-    paddingBottom: 80,
+    paddingTop: 20,
+    paddingBottom: 10,
   },
   innerContainer: {
     width: '100%',
@@ -1166,6 +1273,75 @@ export const list = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#1f2937',
+  },
+  bookingCardContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
+    overflow: 'hidden', // Crucial for the footer button look
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+  },
+  bookingCard: {
+    padding: 16,
+    backgroundColor: '#ffffff',
+  },
+  bookingHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  bookingHeaderLeft: {
+    flex: 1,
+  },
+  bookingHeaderRight: {
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+  },
+  totalPrice: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#0f172a',
+    marginBottom: 4,
+  },
+  bookingIdBold: {
+    color: 'black'
+  },
+  // Specific Footer Cancel Button Style
+  listCancelButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    backgroundColor: '#fff1f2',
+    borderTopWidth: 1,
+    borderTopColor: '#ffe4e6',
+  },
+  listCancelButtonText: {
+    color: '#e11d48',
+    fontWeight: '700',
+    fontSize: 13,
+    marginLeft: 6,
+  },
+  collapsibleContent: {
+    marginTop: 12,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#f1f5f9',
+    marginBottom: 12,
+  },
+  hotelDetailsText: {
+    fontSize: 13,
+    color: '#64748b',
+    marginTop: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
 
   // Status Badge

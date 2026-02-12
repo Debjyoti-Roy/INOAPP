@@ -1010,6 +1010,7 @@ import { getTourPackages } from '../Redux/tourPackageSlice';
 import HotelRecentSearch from "../MainComponents/RecentSearchComponents/HotelRecentSearch";
 import CarRecentSearch from '../MainComponents/RecentSearchComponents/CarRecentSearch';
 import TourRecentSearch from '../MainComponents/RecentSearchComponents/TourRecentSearch';
+import About from './MainPageComponents/About'
 
 const { height } = Dimensions.get('window');
 
@@ -1580,6 +1581,7 @@ const Mainpage = () => {
               />
             </View>
           </Modal>
+          
         </View>
       );
     }
@@ -1612,7 +1614,10 @@ const Mainpage = () => {
             isActive={activeTab === 'cars'}
           />
         </View>
+        
       </View>
+
+      
 
       {/* Scrollable content UNDER the sticky banner */}
       <Animated.ScrollView
@@ -1622,7 +1627,10 @@ const Mainpage = () => {
         scrollEventThrottle={16}
       >
         {renderSearchBox()}
+        <About />
         {renderRecentSearch()}
+
+        
 
         <DatePickerModal
           locale="en"
