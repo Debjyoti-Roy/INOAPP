@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     marginBottom: 16,
     justifyContent: "center",
-    marginTop:30
+    marginTop:10
   },
   tabBtn: {
     paddingVertical: 8,

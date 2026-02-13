@@ -170,11 +170,11 @@ const CarPackageSearch = ({ route, navigation }) => {
     });
     const { myData } = route.params;
     useEffect(() => {
-            const job = async () => {
-                await SecureStore.setItemAsync("carSearchroute", JSON.stringify(myData));
-            }
-            job()
-        }, [myData])
+        const job = async () => {
+            await SecureStore.setItemAsync("carSearchroute", JSON.stringify(myData));
+        }
+        job()
+    }, [myData])
     const formatToDDMMYYYY = (isoString) => {
         if (!isoString) return "";
 
@@ -229,60 +229,60 @@ const CarPackageSearch = ({ route, navigation }) => {
     }, [myData, applyFilter])
 
     const sortedPackages = React.useMemo(() => {
-            if (!packages) return [];
-            const hotels = [...packages];
-            if (sortOption === "lowToHigh")
-                return hotels.sort((a, b) => a.price - b.price);
-            if (sortOption === "highToLow")
-                return hotels.sort((a, b) => b.price - a.price);
-            return hotels;
-        }, [packages, sortOption]);
+        if (!packages) return [];
+        const hotels = [...packages];
+        if (sortOption === "lowToHigh")
+            return hotels.sort((a, b) => a.price - b.price);
+        if (sortOption === "highToLow")
+            return hotels.sort((a, b) => b.price - a.price);
+        return hotels;
+    }, [packages, sortOption]);
 
-        const handleViewDetails=(id)=>{
+    const handleViewDetails = (id) => {
         const data = {
             id: id,
-            travelDate:myData.travelDate
+            travelDate: myData.travelDate
         }
         // console.log(data)
-        navigation.navigate("CarPackageDetails", { carPackage:data });
+        navigation.navigate("CarPackageDetails", { carPackage: data });
     }
 
     const renderPackageCard = ({ item }) => (
-            <View style={list.packageCard}>
-                <View style={list.imageContainer}>
-                    <Image
-                        source={{ uri: item.thumbnailUrl }}
-                        style={list.image}
-                        resizeMode="cover"
-                    />
-                </View>
-    
-                <View style={list.infoContainer}>
-                    <Text style={list.packageTitle}>{item.title}</Text>
-                    <Text style={list.packageDescription} numberOfLines={3}>
-                        {item.description}
-                    </Text>
-    
-                    <View style={list.rowBetween}>
-                        <Text style={list.duration}>
-                            🗓️ {item.durationDays} Days
-                        </Text>
-                        <Text style={list.price}>
-                            ₹{item.price}
-                            <Text style={list.perPerson}> /person</Text>
-                        </Text>
-                    </View>
-    
-                    <TouchableOpacity
-                        style={list.bookButton}
-                        onPress={() => handleViewDetails(item.id)}
-                    >
-                        <Text style={list.bookText}>View Details</Text>
-                    </TouchableOpacity>
-                </View>
+        <View style={list.packageCard}>
+            <View style={list.imageContainer}>
+                <Image
+                    source={{ uri: item.thumbnailUrl }}
+                    style={list.image}
+                    resizeMode="cover"
+                />
             </View>
-        );
-    
+
+            <View style={list.infoContainer}>
+                <Text style={list.packageTitle}>{item.title}</Text>
+                <Text style={list.packageDescription} numberOfLines={3}>
+                    {item.description}
+                </Text>
+
+                <View style={list.rowBetween}>
+                    <Text style={list.duration}>
+                        🗓️ {item.durationDays} Days
+                    </Text>
+                    <Text style={list.price}>
+                        ₹{item.price}
+                        <Text style={list.perPerson}> /person</Text>
+                    </Text>
+                </View>
+
+                <TouchableOpacity
+                    style={list.bookButton}
+                    onPress={() => handleViewDetails(item.id)}
+                >
+                    <Text style={list.bookText}>View Details</Text>
+                </TouchableOpacity>
+            </View>
+        </View>
+    );
+
 
     useEffect(() => {
         console.log(packages)
@@ -353,10 +353,10 @@ const CarPackageSearch = ({ route, navigation }) => {
             </Animated.View>
             <View style={styles.bottomBar}>
                 <TouchableOpacity onPress={() => setShowFilterModal(true)}>
-                    <Text style={styles.dropdownLabel}>Filter</Text>
+                    <Text style={[styles.dropdownLabel, { color: "#000" }]}>Filter</Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => setSortOption(sortOption === "lowToHigh" ? "highToLow" : "lowToHigh")}>
-                    <Text style={styles.dropdownLabel}>Sort By: {sortOption === "lowToHigh" ? "Low → High" : sortOption === "highToLow" ? "High → Low" : "None"}</Text>
+                    <Text style={[styles.dropdownLabel, { color: "#000" }]}>Sort By: {sortOption === "lowToHigh" ? "Low → High" : sortOption === "highToLow" ? "High → Low" : "None"}</Text>
                 </TouchableOpacity>
             </View>
             <DatePickerModal
@@ -378,24 +378,24 @@ const CarPackageSearch = ({ route, navigation }) => {
                 }}
             />
             {packagesLoading ? (
-                            <ActivityIndicator size="large" color="#0077CC" style={{ marginTop: 50 }} />
-                        ) : (
-                            <FlatList
-                                data={sortedPackages}
-                                renderItem={renderPackageCard}
-                                keyExtractor={(item) => item.id.toString()}
-                                ListHeaderComponent={() => (
-                                    <Text style={list.locationText2}>
-                                        Showing Tour Packages in{" "}
-                                        <Text style={list.locationHighlight}>{myData.location}</Text>
-                                    </Text>
-                                )}
-                                contentContainerStyle={{
-                                    padding: 10,
-                                    paddingBottom: 100,
-                                }}
-                            />
-                        )}
+                <ActivityIndicator size="large" color="#0077CC" style={{ marginTop: 50 }} />
+            ) : (
+                <FlatList
+                    data={sortedPackages}
+                    renderItem={renderPackageCard}
+                    keyExtractor={(item) => item.id.toString()}
+                    ListHeaderComponent={() => (
+                        <Text style={list.locationText2}>
+                            Showing Tour Packages in{" "}
+                            <Text style={list.locationHighlight}>{myData.location}</Text>
+                        </Text>
+                    )}
+                    contentContainerStyle={{
+                        padding: 10,
+                        paddingBottom: 100,
+                    }}
+                />
+            )}
             {showFilterModal && (
                 <FilterSection
                     onClose={() => setShowFilterModal(false)}

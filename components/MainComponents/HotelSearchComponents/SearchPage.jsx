@@ -431,16 +431,16 @@ const SearchPage = ({ route, navigation }) => {
 
                             {/* Bottom sheet */}
                             <View style={style3.sheet}>
-                                <Text style={style3.sheetTitle}>Select rooms and guests</Text>
+                                <Text style={[style3.sheetTitle, { color: "#000" }]}>Select rooms and guests</Text>
 
                                 {/* Rooms */}
                                 <View style={style3.row}>
-                                    <Text>Rooms</Text>
+                                    <Text style={{ color: '#000' }}>Rooms</Text>
                                     <View style={style3.counter}>
                                         <TouchableOpacity onPress={() => decrementRooms(setRooms)} style={style3.roundButton}>
                                             <Text style={style3.btnText}>-</Text>
                                         </TouchableOpacity>
-                                        <Text style={style3.count}>{rooms}</Text>
+                                        <Text style={[style3.count, { color: "#000" }]}>{rooms}</Text>
                                         <TouchableOpacity onPress={() => incrementRooms(setRooms)} style={style3.roundButton}>
                                             <Text style={style3.btnText}>+</Text>
                                         </TouchableOpacity>
@@ -449,24 +449,24 @@ const SearchPage = ({ route, navigation }) => {
 
                                 {/* Adults */}
                                 <View style={style3.row}>
-                                    <Text>Adults</Text>
+                                    <Text style={{ color: '#000' }}>Adults</Text>
                                     <View style={style3.counter}>
                                         <TouchableOpacity onPress={() => decrement(setAdults)} style={style3.roundButton}>
                                             <Text style={style3.btnText}>-</Text>
                                         </TouchableOpacity>
-                                        <Text style={style3.count}>{adults}</Text>
+                                        <Text style={[style3.count, { color: "#000" }]}>{adults}</Text>
                                         <TouchableOpacity onPress={() => increment(setAdults)} style={style3.roundButton}>
                                             <Text style={style3.btnText}>+</Text>
                                         </TouchableOpacity>
                                     </View>
                                 </View>
                                 <View style={style3.row}>
-                                    <Text>Children</Text>
+                                    <Text style={{ color: '#000' }}>Children</Text>
                                     <View style={style3.counter}>
                                         <TouchableOpacity onPress={() => decrement(setChildren)} style={style3.roundButton}>
                                             <Text style={style3.btnText}>-</Text>
                                         </TouchableOpacity>
-                                        <Text style={style3.count}>{children}</Text>
+                                        <Text style={[style3.count, { color: "#000" }]}>{children}</Text>
                                         <TouchableOpacity onPress={() => increment(setChildren)} style={style3.roundButton}>
                                             <Text style={style3.btnText}>+</Text>
                                         </TouchableOpacity>
@@ -487,10 +487,10 @@ const SearchPage = ({ route, navigation }) => {
             </Animated.View>
             <View style={styles.bottomBar}>
                 <TouchableOpacity onPress={() => setShowFilterModal(true)}>
-                    <Text style={styles.dropdownLabel}>Filter</Text>
+                    <Text style={[styles.dropdownLabel, { color: "#000" }]}>Filter</Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => setSortOption(sortOption === "lowToHigh" ? "highToLow" : "lowToHigh")}>
-                    <Text style={styles.dropdownLabel}>Sort By: {sortOption === "lowToHigh" ? "Low → High" : sortOption === "highToLow" ? "High → Low" : "None"}</Text>
+                    <Text style={[styles.dropdownLabel, { color: "#000" }]}>Sort By: {sortOption === "lowToHigh" ? "Low → High" : sortOption === "highToLow" ? "High → Low" : "None"}</Text>
                 </TouchableOpacity>
             </View>
             <DatePickerModal
@@ -579,13 +579,13 @@ const SearchPage = ({ route, navigation }) => {
                     style={[style3.sheet, { transform: [{ translateY }] }]}
                     {...panResponder.panHandlers}
                 >
-                    <Text style={style3.sheetTitle}>Filters</Text>
+                    <Text style={[style3.sheetTitle, { color: "#000" }]}>Filters</Text>
 
                     {/* Price Range */}
-                    <Text style={style3.label}>Price Range</Text>
+                    <Text style={[style3.label, { color: "#000" }]}>Price Range</Text>
                     <View style={style3.priceRangeRow}>
                         <TextInput
-                            style={style3.priceInput}
+                            style={[style3.priceInput, { color: "#000" }]}
                             keyboardType="numeric"
                             value={String(appliedFilters.priceRange.min)}
                             onChangeText={(val) =>
@@ -596,9 +596,9 @@ const SearchPage = ({ route, navigation }) => {
                             }
                             placeholder="Min"
                         />
-                        <Text style={{ marginHorizontal: 5 }}>-</Text>
+                        <Text style={{ marginHorizontal: 5, color:"#000" }}>-</Text>
                         <TextInput
-                            style={style3.priceInput}
+                            style={[style3.priceInput, { color: "#000" }]}
                             keyboardType="numeric"
                             value={String(appliedFilters.priceRange.max)}
                             onChangeText={(val) =>
@@ -612,7 +612,7 @@ const SearchPage = ({ route, navigation }) => {
                     </View>
 
                     {/* Tags */}
-                    <Text style={style3.label}>Tags</Text>
+                    <Text style={[style3.label,{color:"#000"}]}>Tags</Text>
                     <View style={style3.tagsContainer}>
                         {availableTags.map((tag) => (
                             <TouchableOpacity
@@ -647,7 +647,7 @@ const SearchPage = ({ route, navigation }) => {
                     </View>
 
                     {/* Amenities */}
-                    <Text style={style3.label}>Amenities</Text>
+                    <Text style={[style3.label,{color:"#000"}]}>Amenities</Text>
                     <View style={style3.tagsContainer}>
                         {availableAmenities.map((amenity) => (
                             <TouchableOpacity

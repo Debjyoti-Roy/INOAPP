@@ -779,16 +779,16 @@ const HotelDetailsPage = ({ route, navigation }) => {
 
               {/* Bottom sheet */}
               <View style={style3.sheet}>
-                <Text style={style3.sheetTitle}>Select rooms and guests</Text>
+                <Text style={[style3.sheetTitle,{color:"#000"}]}>Select rooms and guests</Text>
 
                 {/* Rooms */}
                 <View style={style3.row}>
-                  <Text>Rooms</Text>
+                  <Text style={{color:'#000'}}>Rooms</Text>
                   <View style={style3.counter}>
                     <TouchableOpacity onPress={() => decrementRooms(setRooms)} style={style3.roundButton}>
                       <Text style={style3.btnText}>-</Text>
                     </TouchableOpacity>
-                    <Text style={style3.count}>{rooms}</Text>
+                    <Text style={[style3.count,{color:"#000"}]}>{rooms}</Text>
                     <TouchableOpacity onPress={() => incrementRooms(setRooms)} style={style3.roundButton}>
                       <Text style={style3.btnText}>+</Text>
                     </TouchableOpacity>
@@ -797,24 +797,24 @@ const HotelDetailsPage = ({ route, navigation }) => {
 
                 {/* Adults */}
                 <View style={style3.row}>
-                  <Text>Adults</Text>
+                  <Text style={{color:'#000'}}>Adults</Text>
                   <View style={style3.counter}>
                     <TouchableOpacity onPress={() => decrement(setAdults)} style={style3.roundButton}>
                       <Text style={style3.btnText}>-</Text>
                     </TouchableOpacity>
-                    <Text style={style3.count}>{adults}</Text>
+                    <Text style={[style3.count,{color:"#000"}]}>{adults}</Text>
                     <TouchableOpacity onPress={() => increment(setAdults)} style={style3.roundButton}>
                       <Text style={style3.btnText}>+</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
                 <View style={style3.row}>
-                  <Text>Children</Text>
+                  <Text style={{color:'#000'}}>Children</Text>
                   <View style={style3.counter}>
                     <TouchableOpacity onPress={() => decrement(setChildren)} style={style3.roundButton}>
                       <Text style={style3.btnText}>-</Text>
                     </TouchableOpacity>
-                    <Text style={style3.count}>{children}</Text>
+                    <Text style={[style3.count,{color:"#000"}]}>{children}</Text>
                     <TouchableOpacity onPress={() => increment(setChildren)} style={style3.roundButton}>
                       <Text style={style3.btnText}>+</Text>
                     </TouchableOpacity>

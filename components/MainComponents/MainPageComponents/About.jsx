@@ -83,7 +83,7 @@ const About = () => {
 const styles = StyleSheet.create({
   container: {
     width: width * 0.9,
-    marginVertical: 30,
+    marginTop: 30,
     alignItems: 'center',
   },
   header: {

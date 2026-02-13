@@ -142,10 +142,10 @@ const RoomSelectionTable = ({
                     selectedCount <= 0 && styles.disabledButton,
                   ]}
                 >
-                  <Text style={styles.counterText}>–</Text>
+                  <Text style={[styles.counterText,{color:"#000"}]}>–</Text>
                 </TouchableOpacity>
 
-                <Text style={styles.countDisplay}>{selectedCount}</Text>
+                <Text style={[styles.countDisplay,{color:"#000"}]}>{selectedCount}</Text>
 
                 <TouchableOpacity
                   onPress={() =>
@@ -157,7 +157,7 @@ const RoomSelectionTable = ({
                     selectedCount >= room.totalRooms && styles.disabledButton,
                   ]}
                 >
-                  <Text style={styles.counterText}>+</Text>
+                  <Text style={[styles.counterText,{color:"#000"}]}>+</Text>
                 </TouchableOpacity>
               </View>
             </View>

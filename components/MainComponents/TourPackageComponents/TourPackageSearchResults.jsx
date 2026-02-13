@@ -359,10 +359,10 @@ const TourPackageSearchResults = ({ route, navigation }) => {
             </Animated.View>
             <View style={styles.bottomBar}>
                 <TouchableOpacity onPress={() => setShowFilterModal(true)}>
-                    <Text style={styles.dropdownLabel}>Filter</Text>
+                    <Text style={[styles.dropdownLabel,{color:"#000"}]}>Filter</Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => setSortOption(sortOption === "lowToHigh" ? "highToLow" : "lowToHigh")}>
-                    <Text style={styles.dropdownLabel}>Sort By: {sortOption === "lowToHigh" ? "Low → High" : sortOption === "highToLow" ? "High → Low" : "None"}</Text>
+                    <Text style={[styles.dropdownLabel,{color:"#000"}]}>Sort By: {sortOption === "lowToHigh" ? "Low → High" : sortOption === "highToLow" ? "High → Low" : "None"}</Text>
                 </TouchableOpacity>
             </View>
             <DatePickerModal

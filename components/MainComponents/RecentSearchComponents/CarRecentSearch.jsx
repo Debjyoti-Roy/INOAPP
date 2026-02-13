@@ -44,10 +44,16 @@ const CarRecentSearch = () => {
   }, [packages]);
 
   const handleBookNow = (pkg) => {
-    navigation.navigate("CarPackageDetails", {
-      id: pkg.id,
-      travelDate: pkg.travelDate,
-    });
+    console.log(pkg)
+    const data={
+      id:pkg.id,
+      travelDate:pkg.travelDate
+    }
+    navigation.navigate("CarPackageDetails", { carPackage: data });
+    // navigation.navigate("CarPackageDetails", {
+    //   id: pkg.id,
+    //   travelDate: pkg.travelDate,
+    // });
   };
 
   const renderCard = (pkg) => (
@@ -57,12 +63,12 @@ const CarRecentSearch = () => {
 
       <View style={styles.details}>
         {/* Title */}
-        <Text style={styles.title} numberOfLines={1}>
+        <Text style={[styles.title,{color:"#000"}]} numberOfLines={1}>
           {pkg.title}
         </Text>
 
         {/* Description */}
-        <Text style={styles.description} numberOfLines={3}>
+        <Text style={[styles.description,{color:"#000"}]} numberOfLines={4}>
           {pkg.description}
         </Text>
 
@@ -80,7 +86,7 @@ const CarRecentSearch = () => {
 
         {/* Price & Button */}
         <View style={styles.bottomRow}>
-          <Text style={styles.price}>₹{pkg.price.toLocaleString("en-IN")}</Text>
+          <Text style={[styles.price,{color:"#000"}]}>₹{pkg.price.toLocaleString("en-IN")}</Text>
 
           <Pressable style={styles.button} onPress={() => handleBookNow(pkg)}>
             <Text style={styles.buttonText}>Book Now →</Text>
@@ -100,6 +106,7 @@ const CarRecentSearch = () => {
         fontWeight: "700",
         marginBottom: 12,
         alignSelf: "flex-start",
+        color:"#000"
       }}>
         Recent Car Packages
       </Text>

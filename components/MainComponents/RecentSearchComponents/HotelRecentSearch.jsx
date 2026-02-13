@@ -83,15 +83,15 @@ const HotelRecentSearch = () => {
             />
 
             <View style={styles.details}>
-                <Text style={styles.title} numberOfLines={1}>
+                <Text style={[styles.title,{color:"#000"}]} numberOfLines={1}>
                     {item.name}
                 </Text>
 
-                <Text style={styles.location} numberOfLines={1}>
+                <Text style={[styles.location,{color:"#000"}]} numberOfLines={1}>
                     📍 {item.area}, {item.city}
                 </Text>
 
-                <Text style={styles.description} numberOfLines={3}>
+                <Text style={[styles.description,{color:"#000"}]} numberOfLines={3}>
                     {item.description}
                 </Text>
 
@@ -102,7 +102,7 @@ const HotelRecentSearch = () => {
                 )}
 
                 <View style={styles.priceRow}>
-                    <Text style={styles.price}>
+                    <Text style={[styles.price,{color:"#000"}]}>
                         ₹{item.startingPrice.toLocaleString("en-IN")}
                         <Text style={styles.night}> /night</Text>
                     </Text>
@@ -120,7 +120,7 @@ const HotelRecentSearch = () => {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.header}>Recent Hotels</Text>
+            <Text style={[styles.header,{color:"#000"}]}>Recent Hotels</Text>
 
             <FlatList
                 data={hotels}
