@@ -9,10 +9,11 @@ import {
 } from 'react-native'
 import React, { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
-import {  getTourPackages } from '@/components/Redux/tourPackageSlice';
+import { getTourPackages } from '@/components/Redux/tourPackageSlice';
 import Svg, { Path } from "react-native-svg";
 import { DatePickerModal, ro } from "react-native-paper-dates";
 import * as SecureStore from "expo-secure-store";
+import LottieView from 'lottie-react-native';
 
 
 const FilterSection = ({ onClose, onApply, filters, setFilters }) => {
@@ -359,10 +360,10 @@ const TourPackageSearchResults = ({ route, navigation }) => {
             </Animated.View>
             <View style={styles.bottomBar}>
                 <TouchableOpacity onPress={() => setShowFilterModal(true)}>
-                    <Text style={[styles.dropdownLabel,{color:"#000"}]}>Filter</Text>
+                    <Text style={[styles.dropdownLabel, { color: "#000" }]}>Filter</Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => setSortOption(sortOption === "lowToHigh" ? "highToLow" : "lowToHigh")}>
-                    <Text style={[styles.dropdownLabel,{color:"#000"}]}>Sort By: {sortOption === "lowToHigh" ? "Low → High" : sortOption === "highToLow" ? "High → Low" : "None"}</Text>
+                    <Text style={[styles.dropdownLabel, { color: "#000" }]}>Sort By: {sortOption === "lowToHigh" ? "Low → High" : sortOption === "highToLow" ? "High → Low" : "None"}</Text>
                 </TouchableOpacity>
             </View>
             <DatePickerModal
@@ -384,7 +385,16 @@ const TourPackageSearchResults = ({ route, navigation }) => {
                 }}
             />
             {loading ? (
-                <ActivityIndicator size="large" color="#0077CC" style={{ marginTop: 50 }} />
+                // <ActivityIndicator size="large" color="#0077CC" style={{ marginTop: 50 }} />
+                <View style={styles.loadingContainer}>
+                    <LottieView
+                        source={require("../../../assets/Lottie/InfinityLoader.json")} // Ensure path is correct
+                        autoPlay
+                        loop
+                        style={styles.lottie}
+                    />
+                    {/* <Text style={styles.loadingText}>Locating you...</Text> */}
+                </View>
             ) : (
                 <FlatList
                     data={sortedPackages}
@@ -567,6 +577,16 @@ const list = StyleSheet.create({
 
 
 const styles = StyleSheet.create({
+    loadingContainer: {
+        flex: 1,
+        backgroundColor: "#ffffff",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    lottie: {
+        width: 200,
+        height: 200,
+    },
     container: { flex: 1, backgroundColor: "#fff" },
     headerRow: {
         backgroundColor: "#0077CC",

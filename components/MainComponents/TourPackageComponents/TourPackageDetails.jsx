@@ -17,6 +17,7 @@ import Swiper from "react-native-swiper";
 import { LinearGradient } from 'expo-linear-gradient';
 import { encode as btoa, decode as atob } from "base-64";
 import HotelShareButton from '../ShareButtons/HotelShareButton';
+import LottieView from 'lottie-react-native';
 
 const LocationIcon = ({ color = '#2563eb', size = 20 }) => (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
@@ -84,16 +85,16 @@ const SupportIcon = ({ color = "#2563eb", size = 26 }) => (
 const { width, height } = Dimensions.get('window');
 const TourPackageDetails = ({ route, navigation }) => {
     const { tourPackage } = route.params;
-    let finalData=null;
-    if(typeof tourPackage==='string'){
-          const jsonString = atob(tourPackage);
-          const dt = {
+    let finalData = null;
+    if (typeof tourPackage === 'string') {
+        const jsonString = atob(tourPackage);
+        const dt = {
             id: jsonString.id,
             travelDate: jsonString.travelDate
         }
         finalData = dt
-    }else{
-        finalData=tourPackage
+    } else {
+        finalData = tourPackage
     }
     // useEffect(() => {
     //     console.log(data)
@@ -129,6 +130,19 @@ const TourPackageDetails = ({ route, navigation }) => {
 
     const encoded = btoa(JSON.stringify(shareData));
     const shareUrl = `https://www.ino.com/tourdetails?tourPackage=${encoded}`;
+
+    if (tourDetailsLoading) {
+        <View style={styles.loadingContainer}>
+            <LottieView
+                source={require("../../../assets/Lottie/InfinityLoader.json")} // Ensure path is correct
+                autoPlay
+                loop
+                style={styles.lottie}
+            />
+            {/* <Text style={styles.loadingText}>Locating you...</Text> */}
+        </View>
+
+    }
 
     return (
         <ScrollView style={{ backgroundColor: '#f9fafb' }}>
@@ -480,6 +494,16 @@ const styles2 = StyleSheet.create({
 });
 
 const styles = StyleSheet.create({
+    loadingContainer: {
+        flex: 1,
+        backgroundColor: "#ffffff",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    lottie: {
+        width: 200,
+        height: 200,
+    },
     heroContainer: {
         height: height * 0.4,
         position: "relative",

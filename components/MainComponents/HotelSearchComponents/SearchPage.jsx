@@ -20,6 +20,7 @@ import { searchHotels } from "@/components/Redux/hotelSlice";
 import Svg, { Path } from "react-native-svg";
 import Swiper from "react-native-swiper";
 import * as SecureStore from "expo-secure-store";
+import LottieView from "lottie-react-native";
 
 const { width } = Dimensions.get("window");
 
@@ -503,7 +504,16 @@ const SearchPage = ({ route, navigation }) => {
                 onConfirm={onConfirm}
             />
             {loading ? (
-                <ActivityIndicator size="large" color="#0077CC" style={{ marginTop: 50 }} />
+                // <ActivityIndicator size="large" color="#0077CC" style={{ marginTop: 50 }} />
+                <View style={styles.loadingContainer}>
+                    <LottieView
+                        source={require("../../../assets/Lottie/InfinityLoader.json")} // Ensure path is correct
+                        autoPlay
+                        loop
+                        style={styles.lottie}
+                    />
+                    {/* <Text style={styles.loadingText}>Locating you...</Text> */}
+                </View>
             ) : (
                 <FlatList
                     data={sortedHotels}
@@ -596,7 +606,7 @@ const SearchPage = ({ route, navigation }) => {
                             }
                             placeholder="Min"
                         />
-                        <Text style={{ marginHorizontal: 5, color:"#000" }}>-</Text>
+                        <Text style={{ marginHorizontal: 5, color: "#000" }}>-</Text>
                         <TextInput
                             style={[style3.priceInput, { color: "#000" }]}
                             keyboardType="numeric"
@@ -612,7 +622,7 @@ const SearchPage = ({ route, navigation }) => {
                     </View>
 
                     {/* Tags */}
-                    <Text style={[style3.label,{color:"#000"}]}>Tags</Text>
+                    <Text style={[style3.label, { color: "#000" }]}>Tags</Text>
                     <View style={style3.tagsContainer}>
                         {availableTags.map((tag) => (
                             <TouchableOpacity
@@ -647,7 +657,7 @@ const SearchPage = ({ route, navigation }) => {
                     </View>
 
                     {/* Amenities */}
-                    <Text style={[style3.label,{color:"#000"}]}>Amenities</Text>
+                    <Text style={[style3.label, { color: "#000" }]}>Amenities</Text>
                     <View style={style3.tagsContainer}>
                         {availableAmenities.map((amenity) => (
                             <TouchableOpacity
@@ -837,6 +847,16 @@ const style3 = StyleSheet.create({
 
 
 const styles = StyleSheet.create({
+    loadingContainer: {
+        flex: 1,
+        backgroundColor: "#ffffff",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    lottie: {
+        width: 200,
+        height: 200,
+    },
     container: { flex: 1, backgroundColor: "#fff" },
 
     headerRow: {

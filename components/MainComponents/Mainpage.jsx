@@ -718,11 +718,7 @@ const Mainpage = () => {
             isActive={activeTab === 'cars'}
           />
         </View>
-
       </View>
-
-
-
       {/* Scrollable content UNDER the sticky banner */}
       <Animated.ScrollView
         style={styles.scroll}
@@ -731,10 +727,12 @@ const Mainpage = () => {
         scrollEventThrottle={16}
       >
         {renderSearchBox()}
-        <About />
-        {renderRecentSearch()}
-
-
+        <View style={{ width: '100%' }}>
+          {renderRecentSearch()}
+        </View>
+        <View>
+          <About />
+        </View>
 
         <DatePickerModal
           locale="en"

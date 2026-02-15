@@ -73,9 +73,14 @@ const HotelRecentSearch = () => {
 
         navigation.navigate("hoteldetailspage", { data });
     };
+    const isSingleItem = hotels?.length === 1;
+    
+    // If single: Full width minus the list's horizontal padding
+    // If multiple: The 75% width for the carousel effect
+    const dynamicCardWidth = isSingleItem ? (width * 0.90) : CARD_WIDTH;
 
     const renderCard = ({ item }) => (
-        <View style={styles.card}>
+        <View style={[styles.card, { width: dynamicCardWidth }]}>
             <Image
                 source={{ uri: item.photoUrls?.[0] }}
                 style={styles.image}
@@ -154,7 +159,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,           // left/right padding
     },
     card: {
-        width: CARD_WIDTH,
+        // width: CARD_WIDTH,
         backgroundColor: "#fff",
         borderRadius: 25,
         overflow: "hidden",
