@@ -11,6 +11,7 @@ import { useDispatch, useSelector } from "react-redux";
 import MapView, { Polyline, Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import polyline from "@mapbox/polyline";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import {
     getLatestCarPickupBooking,
     getAllCarPickupBookings,
@@ -232,7 +233,13 @@ const MyCarPickupBookings = () => {
                     </View>
                 ))
             ) : (
-                <Text style={styles.emptyTextSub}>No previous history</Text>
+                <View style={list.emptyState}>
+                            <View style={list.emptyIconContainer}>
+                              <MaterialIcons name="description" size={48} color="#9ca3af" />
+                            </View>
+                            <Text style={list.emptyTitle}>No Data Available</Text>
+                          </View>
+                // <Text style={styles.emptyTextSub}>No previous history</Text>
             )}
         </View>
     );
@@ -247,6 +254,38 @@ const InfoItem = ({ icon, iconColor, label, value }) => (
         </View>
     </View>
 );
+
+const list =StyleSheet.create({
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 64,
+    paddingHorizontal: 16,
+  },
+  emptyIconContainer: {
+    width: 96,
+    height: 96,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#1f2937',
+    marginBottom: 8,
+  },
+  emptyDescription: {
+    fontSize: 16,
+    color: '#6b7280',
+    textAlign: 'center',
+    marginBottom: 16,
+    lineHeight: 24,
+  },
+})
+
 
 const styles = StyleSheet.create({
     container: {

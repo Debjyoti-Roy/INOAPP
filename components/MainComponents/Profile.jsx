@@ -68,11 +68,11 @@ const Profile = () => {
 
   const menuItems = [
     { id: "profile", title: "My Profile" },
-    { id: "bookings", title: "My Bookings" },
+    // { id: "bookings", title: "My Bookings" },
     { id: "about", title: "About" },
     { id: "contact", title: "Contact Us" },
     { id: "partner", title: "Partner Dashboard" },
-    { id: "help", title: "Help & Center" },
+    // { id: "help", title: "Help & Center" },
     { id: "terms", title: "Terms and Condition" },
     { id: "queries", title: "My Queries" },
   ];
@@ -86,7 +86,7 @@ const Profile = () => {
 
   useEffect(() => {
     Animated.timing(bannerHeight, {
-      toValue: user ? windowHeight * 0.5 : windowHeight,
+      toValue: user ? windowHeight * 0.6 : windowHeight,
       duration: 550,
       easing: Easing.out(Easing.cubic),
       useNativeDriver: false,

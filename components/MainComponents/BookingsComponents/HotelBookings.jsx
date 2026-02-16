@@ -1139,7 +1139,7 @@ export const list = StyleSheet.create({
     alignItems: 'center',
   },
   tabButtonActive: {
-    backgroundColor: '#2563eb',
+    backgroundColor: '#2196F3',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,

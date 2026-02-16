@@ -16,6 +16,7 @@ import { uploadProfileDetails, uploadProfileImage } from "../Redux/profileSlice"
 import * as SecureStore from "expo-secure-store";
 import { useNavigation } from "@react-navigation/native";
 import { MaterialIcons } from "@expo/vector-icons";
+import Svg, { Path } from "react-native-svg";
 
 export default function MyProfile({ route }) {
   const navigation = useNavigation();
@@ -131,7 +132,28 @@ export default function MyProfile({ route }) {
     <View style={styles.container}>
       {/* Top Banner */}
       <View style={styles.banner}>
-        <Text style={styles.bannerText}>My Profile</Text>
+        {/* <Text style={styles.bannerText}>My Profile</Text> */}
+        <View style={styles.bannerContent}>
+          <TouchableOpacity 
+            onPress={() => navigation.goBack()} 
+            style={styles.backButton}
+          >
+            <Svg
+              xmlns="http://www.w3.org/2000/svg"
+              width={24}
+              height={24}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="white" // Changed to white
+              strokeWidth={2.5} // Slightly thicker for better visibility
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <Path d="M12 19l-7-7 7-7"  /> 
+            </Svg>
+          </TouchableOpacity>
+          <Text style={styles.bannerText}>My Profile</Text>
+        </View>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -153,7 +175,7 @@ export default function MyProfile({ route }) {
           <View key={key} style={styles.fieldRow}>
             <Text style={styles.label}>{label}</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input,{color:"#000"}]}
               value={details[key]}
               placeholder={`Enter ${label}`}
               onChangeText={(text) => handleDetailChange(key, text)}
@@ -180,6 +202,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     justifyContent: "center",
     elevation: 4,
+  },
+  bannerContent: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  backButton: {
+    marginRight: 8, // Space between arrow and text
+    padding: 4,      // Increase touch target
   },
   bannerText: { color: "white", fontSize: 20, fontWeight: "bold" },
 

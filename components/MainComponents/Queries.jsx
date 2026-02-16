@@ -226,7 +226,7 @@ const Queries = () => {
             <Text style={styles.formTitle}>Send us a message</Text>
             <View style={styles.row}>
               <TextInput
-                style={[styles.input, { flex: 1, marginRight: 8 }]}
+                style={[styles.input, { flex: 1, marginRight: 8, color:"#000" }]}
                 placeholder="Full Name"
                 value={name}
                 onChangeText={setName}
@@ -235,7 +235,7 @@ const Queries = () => {
                 <TextInput
                   style={[
                     styles.input,
-                    error2 ? { borderColor: "red" } : {},
+                    error2 ? { borderColor: "red" } : {}, {color:"#000"}
                   ]}
                   placeholder="Contact"
                   value={contact}
@@ -247,13 +247,13 @@ const Queries = () => {
               </View>
             </View>
             <TextInput
-              style={styles.input}
+              style={[styles.input,{color:"#000"}]}
               placeholder="Subject"
               value={subject}
               onChangeText={setSubject}
             />
             <TextInput
-              style={[styles.input, { height: 100, textAlignVertical: "top" }]}
+              style={[styles.input, { height: 100, textAlignVertical: "top", color:"#000" }]}
               placeholder="Message"
               value={message}
               onChangeText={setMessage}
