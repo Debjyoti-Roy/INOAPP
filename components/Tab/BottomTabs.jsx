@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
@@ -20,6 +20,7 @@ import CarPackageDetails from '../MainComponents/CarPackageComponents/CarPackage
 import CarPackageBill from '../MainComponents/CarPackageComponents/CarPackageBill';
 import Myqueries from '../MainComponents/MyQueries/Myqueries'
 import CarPickup from '../MainComponents/CarPickup'
+import Termsandcondition from '../MainComponents/Termsandcondition'
 
 const Stack = createNativeStackNavigator();
 
@@ -30,6 +31,7 @@ function ProfileStack() {
       <Stack.Screen name="MyProfile" component={MyProfile} options={{ headerShown: false }} />
       <Stack.Screen name="MyQueries" component={Myqueries} options={{ headerShown: false }} />
       <Stack.Screen name="ContactUs" component={Queries} options={{ headerShown: false }} />
+      <Stack.Screen name="Termsandcondition" component={Termsandcondition} options={{ headerShown: false }} />
     </Stack.Navigator>
   );
 }
@@ -103,7 +105,7 @@ const CarIcon = ({ color = "#000", size = 24 }) => (
     {/* Wheels (Positioned to sit under the chassis) */}
     <Circle cx="7" cy="18" r="2" fill={color} />
     <Circle cx="17" cy="18" r="2" fill={color} />
-    
+
     {/* Headlight (Optional detail) */}
     <Path d="M19 15h1" stroke={color} strokeWidth="1" strokeLinecap="round" />
   </Svg>
@@ -122,6 +124,11 @@ const UserIcon = ({ color, size }) => (
 );
 
 export default function BottomTabs() {
+  const [homeKey, setHomeKey] = useState(0);
+  const [profileKey, setProfileKey] = useState(0);
+  const [carpickupkey, setCarPickupKey]=useState(0);
+  const [myBookingsKey, setMyBookingsKey]=useState(0)
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -142,16 +149,20 @@ export default function BottomTabs() {
       <Tab.Screen
         name="Home"
         component={HotelStack}
+        listeners={{
+          blur: () => setHomeKey(prev => prev + 1), // 🔥 FORCE REMOUNT
+        }}
         options={({ route }) => {
           const routeName = getFocusedRouteNameFromRoute(route) ?? 'hotelsSearch';
           const isTabVisible = routeName !== 'searchpage' && routeName !== 'hoteldetailspage' && routeName !== 'hotelbill' && routeName !== 'toursearch' && routeName !== 'tourdetails' && routeName !== 'tourbill' && routeName !== 'carPackageSearch' && routeName !== 'CarPackageDetails' && routeName !== 'CarPackageBill';
           return {
             tabBarStyle: isTabVisible ? undefined : { display: 'none' },
+            // unmountOnBlur: true,
           };
         }}
       />
-      <Tab.Screen name="Car Pickup" component={CarPickup} />
-      <Tab.Screen name="Bookings" component={Bookings} />
+      <Tab.Screen name="Car Pickup" options={{ unmountOnBlur: true }} component={CarPickup} />
+      <Tab.Screen name="Bookings" options={{ unmountOnBlur: true }} component={Bookings} />
       <Tab.Screen
         name="Profile"
         component={ProfileStack}
@@ -160,10 +171,12 @@ export default function BottomTabs() {
 
           const isTabVisible =
             routeName !== "MyProfile" &&
-            routeName !== "MyQueries";
-            
+            routeName !== "MyQueries" &&
+            routeName !== "Termsandcondition";
+
           return {
             tabBarStyle: isTabVisible ? undefined : { display: "none" },
+            unmountOnBlur: true,
           };
         }}
       />
@@ -171,6 +184,3 @@ export default function BottomTabs() {
     </Tab.Navigator>
   );
 }
-
-{/* <Tab.Screen name="Queries" component={Queries} /> */}
-{/* <Tab.Screen name="Profile" component={ProfileStack} /> */}

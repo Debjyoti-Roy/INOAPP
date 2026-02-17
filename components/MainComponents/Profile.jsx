@@ -22,6 +22,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import * as SecureStore from "expo-secure-store";
 import google from "../../assets/images/GoogleIcon.png"
 import { useNavigation } from "@react-navigation/native";
+import { clearHotelBooking } from "../Redux/profileSlice";
 
 let refreshIntervalId = null;
 export const startTokenRefresh = () => {
@@ -308,6 +309,7 @@ const Profile = () => {
   const handleSignOut = async () => {
     try {
       setShowPhoneModal(false);
+      dispatch(clearHotelBooking())
       isAuthenticating.current = false;
       setUser(null);
       await auth().signOut();
@@ -374,6 +376,9 @@ const Profile = () => {
                     navigation.navigate("MyQueries"); // pass user data
                   } else if (m.title === "Contact Us") {
                     navigation.navigate("ContactUs")
+                  }else if(m.title==="Terms and Condition"){
+                    navigation.navigate("Termsandcondition")
+
                   } else {
                     console.log("Pressed", m.title);
                   }

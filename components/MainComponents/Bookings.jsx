@@ -207,18 +207,28 @@
 //   },
 // });
 import { StyleSheet, Text, View, Dimensions, ScrollView, TouchableOpacity } from 'react-native';
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { MaterialCommunityIcons } from '@expo/vector-icons'; // Added for icons
 import TabButton from "./MainPageComponents/TabButton";
 import HotelBookings from './BookingsComponents/HotelBookings';
 import MyTourQueries from './BookingsComponents/MyTourQueries';
 import MyCarPackageBookings from './BookingsComponents/MyCarPackageBookings';
 import MyCarPickupBookings from './BookingsComponents/MyCarPickupBookings';
+import { useFocusEffect } from '@react-navigation/native';
 
 const { height, width } = Dimensions.get('window');
 
 const Bookings = () => {
   const [activeTab, setActiveTab] = useState('hotels');
+
+  useFocusEffect(
+    useCallback(()=>{
+      setActiveTab('hotels')
+      return ()=>{
+        setActiveTab('hotels')
+      };
+    },[])
+  )
 
   const renderTab = () => {
     switch (activeTab) {

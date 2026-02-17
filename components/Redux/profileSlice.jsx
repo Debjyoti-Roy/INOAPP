@@ -279,7 +279,13 @@ const profileSlice = createSlice({
       state.cancelCarPickupBookingSuccess = false;
       state.cancelCarPickupBookingError = null;
       state.cancelCarPickupBookingLoading = false
+    },
+    clearHotelBooking:(state)=>{
+      state.bookings=[];
+      state.bookingsLoading=false;
+      state.bookingsError=null
     }
+
   },
   extraReducers: (builder) => {
     // Upload Image
@@ -422,6 +428,6 @@ const profileSlice = createSlice({
   },
 });
 
-export const { resetCancel } = profileSlice.actions;
+export const { resetCancel, clearHotelBooking } = profileSlice.actions;
 
 export default profileSlice.reducer;

@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
   banner: {
     backgroundColor: "#2196F3",
     paddingTop: 60,
-    paddingVertical: 16,
+    paddingVertical: 10,
     paddingHorizontal: 20,
     justifyContent: "center",
     elevation: 4,

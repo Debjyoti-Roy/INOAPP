@@ -370,7 +370,7 @@ const Myqueries = () => {
     const [currentPage, setCurrentPage] = useState(0);
     const [expandedCards, setExpandedCards] = useState({});
     const dispatch = useDispatch();
-    
+
     const { queries, queriesLoading, queriesError } = useSelector(
         (state) => state.profile
     );
@@ -428,8 +428,11 @@ const Myqueries = () => {
         <View style={styles.container}>
             {/* Header */}
             <View style={styles.banner}>
-                <View style={styles.bannerRow}>
-                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+                <View style={styles.bannerContent}>
+                    <TouchableOpacity
+                        onPress={() => navigation?.goBack()}
+                        style={styles.backButton}
+                    >
                         <Svg
                             width={24}
                             height={24}
@@ -443,7 +446,7 @@ const Myqueries = () => {
                             <Path d="M15 18l-6-6 6-6" />
                         </Svg>
                     </TouchableOpacity>
-                    <Text style={styles.bannerTitle}>Your Queries</Text>
+                    <Text style={styles.bannerText}>Your Queries</Text>
                 </View>
             </View>
 
@@ -546,26 +549,47 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: "#F8FAFC",
     },
+    // banner: {
+    //     backgroundColor: '#2196F3',
+    //     paddingTop: 60,
+    //     paddingBottom: 20,
+    //     paddingVertical: 10,
+    //     paddingHorizontal: 20,
+    //     elevation: 4,
+    // },
+    // bannerRow: {
+    //     flexDirection: 'row',
+    //     alignItems: 'center',
+    // },
+    // backBtn: {
+    //     marginRight: 6,
+    //     padding: 4,
+    // },
+    // bannerTitle: {
+    //     fontSize: 20,
+    //     fontWeight: 'bold',
+    //     color: '#fff',
+    // },
     banner: {
-        backgroundColor: '#2196F3',
-        paddingTop: 50,
-        paddingBottom: 20,
+        backgroundColor: "#2196F3",
+        paddingTop: 60, // Adjusted for SafeAreaView
+        paddingVertical: 10,
         paddingHorizontal: 20,
         elevation: 4,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 2,
     },
-    bannerRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
+    bannerContent: {
+        flexDirection: "row",
+        alignItems: "center",
     },
-    backBtn: {
-        marginRight: 6,
+    backButton: {
+        marginRight: 12,
         padding: 4,
     },
-    bannerTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#fff',
-    },
+    bannerText: { color: "white", fontSize: 20, fontWeight: "bold" },
     tabsWrapper: {
         marginTop: 15,
         height: 50,

@@ -11,7 +11,7 @@ import {
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import PickerSelect from 'react-native-picker-select';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
-import React, { useRef, useState, useEffect } from 'react'
+import React, { useRef, useState, useEffect, useCallback } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 // import { useNavigation } from 'expo-router';
 import { useNavigation } from "@react-navigation/native";
@@ -26,6 +26,7 @@ import Constants from "expo-constants";
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import PaymentSuccessfulModal from '@/components/ModalComponent/PaymentSuccessfulModal';
 import PaymentFailedModal from '@/components/ModalComponent/PaymentFailedModal';
+import { useFocusEffect } from 'expo-router';
 
 // const { width } = Dimensions.get('window');
 
@@ -132,6 +133,17 @@ const HotelBookings = () => {
       [id]: !prev[id],
     }));
   };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchBookings(0, "CONFIRMED");
+      return () => {
+        setBookings([]);
+        setTotalPages(1);
+        setPage(0);
+      }
+    }, [])
+  )
 
   const fetchBookings = async (pageNum, selectedStatus = status) => {
     setLoading(true);
