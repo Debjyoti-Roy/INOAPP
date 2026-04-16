@@ -11,15 +11,15 @@ const TabButton = ({ icon, label, onPress, isActive }) => (
 export default TabButton;
 
 const styles = StyleSheet.create({
- tab: {
-  flex: 1, // equal width for all tabs
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'center', // center icon + text
-  paddingVertical: 8,
-  borderRadius: 20,
-  marginHorizontal: 4, // small space between tabs
-},
+  tab: {
+    flex: 1, // equal width for all tabs
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center', // center icon + text
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginHorizontal: "0.5%", // small space between tabs
+  },
   activeTab: {
     backgroundColor: '#fff',
   },

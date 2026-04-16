@@ -34,6 +34,8 @@ import About from './MainPageComponents/About'
 import { Ionicons } from "@expo/vector-icons";
 
 const { height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
+
 
 const formattedDate = (dateString) => {
   const date = new Date(dateString);
@@ -968,9 +970,9 @@ const styles = StyleSheet.create({
     width: "100%",
     backgroundColor: "#2196F3",
     justifyContent: "flex-end",
-    paddingHorizontal: 20,
+    paddingHorizontal: width*0.05,
     paddingTop: 40,
-    paddingBottom: 10,
+    paddingBottom: height*0.01,
   },
   bannerTitle: {
     fontSize: 28,

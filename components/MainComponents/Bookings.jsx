@@ -302,9 +302,10 @@ const styles = StyleSheet.create({
     height: height * 0.14, // Fixed height for static header
     width: '100%',
     backgroundColor: '#2196F3',
-    justifyContent: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 45,
+    justifyContent: "flex-end",
+    paddingHorizontal: width*0.05,
+    paddingTop: 4,
+    paddingBottom: height*0.01,
     // Add a shadow to show separation from scrolling content
     elevation: 8,
     shadowColor: '#000',
